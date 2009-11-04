@@ -1,16 +1,25 @@
 #!/bin/false
 
-# An xchat plug to warn when someone references you directly
+# An xchat plugin to warn when someone references you directly
 
-# put this in ~/.xchat2/ dir to autoload
-# Note this requires that xchat-python is installed
+# Author:
+#    http://www.pixelbeat.org/
+# Notes:
+#    Put this in ~/.xchat2/ dir to autoload.
+#    This plugin requires that xchat-python is installed
+# Changes:
+#    V1.0, 02 Dec 2005, Initial release
+#    V2.0, 04 Nov 2009, Changes from Tim Kersten
+#                         More accurate (nick) matching
+
 
 __module_name__ = "xchat_warn"
-__module_version__ = "1.0"
+__module_version__ = "2.0"
 __module_description__ = "Warn when someone is referencing you directly"
 
 import time
 import os
+import re
 import xchat
 lastAlert=0
 
@@ -26,8 +35,9 @@ def CheckAlert(to,message):
     now=int(time.time())
     nick = xchat.get_info("nick")
     nick = nick.lower()
+    match = re.search(r'\b(%s)\b' % re.escape(nick), message, re.IGNORECASE)
     to = to.lower()
-    if to==nick or message.lower().find(nick)>=0:
+    if to==nick or match:
         if now-lastAlert > 10: #10s at least since referenced
             Alert(message)
         lastAlert=now
