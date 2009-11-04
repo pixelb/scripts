@@ -1,0 +1,38 @@
+#!/bin/bash
+# (re)quote input lines email using $QUOTE to appropriate level.
+# It's intended use is for cleaning up mails or reformatting comments etc.
+#
+# Note fmt has the --prefix option that does the appropriate thing
+# for C comments for e.g. so the main use of this script is for
+# badly formatted email.
+
+QUOTE="> "
+MIN_TEXT_LEN=8
+
+if [ $# == 3 ]; then
+    QUOTE="$1"
+    shift
+fi
+
+if [ $# != 2 ]; then
+    echo "Usage: $0 [quote_string(> )] reponse_level(starting at 0) line_width" >&2
+    exit 1
+fi
+
+RESPONSE_LEVEL=$1
+TEXT_WIDTH=`expr $2 - $1 \* ${#QUOTE}`
+
+if [ $TEXT_WIDTH -lt $MIN_TEXT_LEN ]; then
+    echo "Aborting as line length will be less than $MIN_TEXT_LEN" >&2
+    exit 1
+fi
+
+for i in `seq 1 $RESPONSE_LEVEL`; do
+    RESPONSE_DELIM="$RESPONSE_DELIM$QUOTE"
+done
+RESPONSE_DELIM=`echo "$RESPONSE_DELIM" | sed 's/[ ]*$//'` #remove tailing spaces
+
+QUOTE_DEL=`echo "$QUOTE" | tr -d ' '`
+tr -ds "$QUOTE_DEL\\n" ' ' |
+fmt -w$TEXT_WIDTH |
+sed -e "s/^[ ]*\(.*\)/$RESPONSE_DELIM \1/"

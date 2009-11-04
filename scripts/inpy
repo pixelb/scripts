@@ -1,0 +1,38 @@
+#!/usr/bin/python -i
+
+# Enhance introspection at the python interactive prompt.
+# This is a very simple alternative to ipython
+# whose default settings I don't like.
+#
+# You can run it directly, or call it like:
+#    PYTHONSTARTUP=~/path/to/inpy python
+
+#turn on tab completion
+import readline
+readline.parse_and_bind("tab: complete")
+import rlcompleter
+
+#try to import dire() and ls()
+#See http://www.pixelbeat.org/libs/dir_patt.py
+# Note if $PYTHONPATH is not set then you can
+# import from arbitrary locations like:
+#   import sys,os
+#   sys.path.append(os.environ['HOME']+'/libs/')
+try:
+    from dir_patt import *
+except:
+    pass
+
+#pprint.pprint() doesn't put an item on each line
+#even if width is small? See also:
+#http://code.activestate.com/recipes/327142/
+#also from reddit:
+#  ppdict = lambda d:"\n".join(map("%s: %s".__mod__, d.items()))
+def ppdict(d):
+    print '{'
+    keys=d.keys()
+    keys.sort()
+    for k in keys:
+        spacing=" " * (16-(len(repr(k))+1))
+        print "%s:%s%s," % (repr(k),spacing,repr(d[k]))
+    print '}'

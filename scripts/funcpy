@@ -1,0 +1,274 @@
+#!/usr/bin/python
+
+# Takes lines from stdin and processes with predefined functions like add,avg, etc.
+# The user can also supply a python expression to process each line with, and
+# in this regard is similar to perl -n -e 'expression'
+# Update June 9 2009, I noticed a similar script called pyline:
+#   http://code.activestate.com/recipes/437932/
+
+# Author:
+#    http://www.pixelbeat.org/
+# Notes:
+#    This util uses python's functional attributes to be:
+#      1. scalable  (don't build lists in mem so arbitrary length input supported)
+#      2. efficient (as many operations done in compiled code as possible)
+# Changes:
+#    V1.0, 01 Nov 2006, Initial release
+#    V1.1, 30 Nov 2007, Added 'uniq' (example of many to many)
+
+# Examples:
+#
+#  add numbers
+#   echo -e "1234\n433" | ./funcpy add
+#
+#  The rest of the examples use user supplied expressions
+#  (where the input line is represented by x)
+#
+#  transform numbers
+#   echo -e "1234\n433" | ./funcpy "hex(int(x))[2:]"
+#
+#  operate on single column
+#   echo "1,2,3" | ./funcpy "int(x.split(',')[1])**2"
+#
+#  reiterate over sub items (only reducable functions)
+#   echo "1,2,3" | ./funcpy "add(int(i) for i in x.split(','))"
+#
+#  swartzian transform (to sort by line len) (note sort not as efficient or scalable as max)
+#   ls | ./funcpy "str(len(x))+'\t'+x" | sort -k1,1n | cut -f2
+#
+#  filtering input (odd numbers) (note "or None" at end)
+#   echo -e "1\n2\n3" | ./funcpy "int(x)%2 and x or None"
+#
+#  formating with printf
+#   echo "12341234.432142" | ./funcpy '"%g" % float(x)'
+#
+#  arbitrary modules
+#   ls | ./funcpy --import=base64 "base64.encodestring(x)[:-1]"
+#
+#  similar to perl
+#   echo -e "1\n5" | perl -n -e 'print $_**2,"\n"'
+
+import itertools
+import operator
+import math
+
+used_compiled=True #Turn off for comparison
+
+
+#is swartzian transform functional?
+
+
+#can we add reducable decorator to functions?
+
+#TODO: allow option=expression to filter input if true rather than and or hack?
+
+#TODO: put human() in here?
+
+def reduce(func, items, start=None): #foldl
+    try:
+        items=iter(items)
+    except:
+        raise TypeError, "reduce() arg 2 must support iteration"
+    if start==None:
+        try:
+            state=items.next()
+        except StopIteration:
+            raise TypeError, "reduce() of empty sequence with no initial value"
+    else:
+        state=start
+    for i in items:
+        state = func(state,i)
+    return state
+if used_compiled:
+    try: #builtin removed in python 3.0
+        reduce=__builtins__.reduce
+    except: #here in python 2.6, only here in python 3.0
+        import functools
+        reduce=functools.reduce
+
+def imap(func, iter):
+    for i in iter:
+        yield func(i)
+if used_compiled:
+    imap=itertools.imap
+
+def izip(iter1, iter2):
+    for i in iter1:
+        yield (i, iter2.next()) #exception raised if either exhausted as required
+if used_compiled:
+    izip=itertools.izip
+
+def all(iter): #every?
+    return False not in imap(bool,iter)
+def any(iter): #some?
+    return True in imap(bool,iter)
+if used_compiled:
+    try: # any() and all() are available since python 2.5
+        all=__builtins__.all
+        any=__builtins__.any
+    except:
+        pass
+
+def uniq(iterator):
+    state=None
+    for line in iterator:
+        if line != state:
+            yield line
+        state=line
+
+def factorial(x):
+    return reduce(operator.mul, xrange(1,int(x)+1))
+
+def add(iter):
+    return reduce(operator.add, iter)
+if used_compiled:
+    add=__builtins__.sum #should be slightly more specific (faster)
+
+def min(iter):
+    state=None
+    for i in iter:
+        if state > i: state=i
+    return state
+if used_compiled:
+    min=__builtins__.min
+
+def max(iter):
+    state=None
+    for i in iter:
+        if i > state: state=i
+    return state
+if used_compiled:
+    max=__builtins__.max
+
+#could we more efficiently (get rid of local iteration with tee maybe?)
+def avg(iter):
+    total=0
+    count=0
+    for i in iter:
+        total+=i
+        count+=1
+    return total/count
+
+def dec2hex(i):
+    return __builtins__.hex(int(i))[2:]
+
+def hex2dec(i):
+    return int(i,16)
+
+def bits(i):
+    if i<0:  raise ValueError, "negative number [%d]" % i
+    if i==0: return 1
+    #shift operator slower
+    return int(math.log(i,2))+1
+
+#=============================================================
+
+import os, sys
+
+# The following exits cleanly on Ctrl-C,
+# while treating other exceptions as before.
+def cli_exception(type, value, tb):
+    if not issubclass(type, KeyboardInterrupt):
+        sys.__excepthook__(type, value, tb)
+if sys.stdin.isatty():
+    sys.excepthook=cli_exception
+
+functions={
+    #name:       (func,       input,  type)
+    'add':       (add,        float,  'mto1'),
+    'max':       (max,        float,  'mto1'),
+    'min':       (min,        float,  'mto1'),
+    'avg':       (avg,        float,  'mto1'),
+    'all':       (all,        float,  'mto1'),
+    'any':       (any,        float,  'mto1'),
+    'uniq':      (uniq,       str,    'mtom'),
+    #Following really of minimal use
+    #'dec2hex':   (dec2hex,    str,   '1to1'),
+    #'hex2dec':   (hex2dec,    str,   '1to1'),
+    #'factorial': (factorial,  int,   '1to1'),
+    #'log10':     (math.log10, float, '1to1'),
+    #'bits':      (bits,       long,  '1to1'),
+}
+
+def Usage():
+    sys.stderr.write("Usage: " + os.path.split(sys.argv[0])[1] + " [OPTIONS] <" + '|'.join(sorted(functions.keys())) + ">\n")
+    sys.stderr.write("       " + os.path.split(sys.argv[0])[1] + " [OPTIONS] <" + "python expression where input is x>\n")
+    sys.stderr.write("Input is taken from stdin, and is processed per line\n")
+    sys.stderr.write("Note python expressions must be stateless (no ifs or assigments)\n")
+    sys.stderr.write("       --imports=mod1,mod2,...    modules to import for use in python expression\n")
+    sys.stderr.write("       --help                     display this help\n")
+    sys.exit(1)
+
+
+import getopt
+try:
+    lOpts, lArgs = getopt.getopt(sys.argv[1:], "", ["help","imports="])
+
+    if len(lArgs) == 1:
+        mode=lArgs[0]
+    else:
+        Usage()
+        sys.exit(1)
+
+    if ("--help","") in lOpts:
+        Usage()
+        sys.exit(None)
+
+    for opt in lOpts:
+        if opt[0] == "--imports":
+            for mod in opt[1].split(","):
+                globals()[mod]=__import__(mod)
+
+except getopt.error, msg:
+    print msg
+    print
+    Usage()
+    sys.exit(2)
+
+#=============================================================
+
+try:
+    func=functions[mode][0]
+    conv=functions[mode][1]
+    ftype=functions[mode][2]
+except:
+    #shows the flexibility of interpretation over compilation
+    code=compile(mode,"<expression>","eval")
+    func=lambda x: eval(code)
+    conv=lambda x: x[-1]=='\n' and x[:-1] or x #strip EOL
+    ftype='1to1'
+
+def convert(iterator):
+    if conv==str: #shortcut for speed
+        return iterator
+    else:
+        return (conv(line) for line in iterator)
+
+try:
+    if ftype=='mto1': #many to one
+        result = func(convert(sys.stdin))
+        if type(result)==bool:
+            sys.exit(not result)
+        else:
+            print result
+    elif ftype=='mtom': #many to many
+        #for result in func(convert(sys.stdin)):
+        #    print result,
+        #note the following is faster but it buffers output
+        #even if stdout is a terminal. writelines really shouldn't do that.
+        sys.stdout.writelines(func(convert(sys.stdin)))
+    else: #one to one
+        for num in convert(sys.stdin):
+            result = func(num)
+            if result!=None:
+                print result
+except IOError, value:
+    if value.errno==32: #EPIPE (piping to head for example)
+        pass
+    else:
+        raise
+except ValueError, value:
+    sys.stderr.write(str(value)+"\n")
+    sys.exit(1)
+except KeyboardInterrupt:
+    pass

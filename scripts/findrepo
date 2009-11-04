@@ -1,0 +1,64 @@
+#!/bin/sh
+
+# find a string in the current directory and below
+# while automatically ignoring repository metadata.
+
+# Author:
+#    http://www.pixelbeat.org/
+# Notes:
+#    One can either supply a regular expression or fixed string.
+#    If just a fixed string is supplied then we specify the -F option to
+#    grep so that it uses fast string matching (why doesn't it do this itself?),
+#    otherwise we default to an extended regular expression.
+#    The match type auto selection is disabled if a specific grep
+#    match type is specified as part of the optional grep options.
+# Changes:
+#    V0.1, 25 Apr 2005, Initial release
+#    V0.2, 25 Mar 2008, Add grep colours if available
+#                       Add more repo dirs to ignore
+#                       Support regular expressions not just fixed strings
+#                       Support passing extra user specified options to grep
+#    V0.3, 26 Mar 2008, Fix bug generating $repo_ign dirs
+#    V0.4, 30 Sep 2008, Tweak grep colour to be usable on light terminals
+
+usage() {
+(
+echo "Usage:    `basename $0` ['grep options'] search_string glob_pattern
+examples: `basename $0` 'main' '*.[ch]'          #fixed string search
+          `basename $0` '(main|mane)' '*.[ch]'   #regular expression search
+          `basename $0` '-F' 'main(' '*.[ch]'    #force fixed string search
+          `basename $0` '-L -F' 'main(' '*.[ch]' #extra grep options"
+) >&2
+    exit 1
+}
+
+if [ "$#" -ne "2" ] && [ "$#" -ne "3" ]; then
+    usage
+fi
+
+#enable search highlighting if supported by grep
+echo | grep --color=auto "" >/dev/null 2>&1 && colour="--color=auto"
+
+if [ "$#" -eq "3" ]; then
+    grep_options="$1"
+    shift
+fi
+
+#default to -E or -F as appropriate, not -G
+if ! printf "%s\n" "$grep_options" |
+     grep -E -- "-([EFGP]|regexp|fixed)" >/dev/null 2>&1; then
+    #used fixed string matching for speed unless an ERE metacharacter used
+    echo "$1" | grep '[.[\()*+?{|^$]' >/dev/null && type="-E" || type="-F"
+    grep_options="$grep_options $type"
+fi
+
+repodirs=".git .svn CVS .hg .bzr _darcs"
+for dir in $repodirs; do
+    repo_ign="$repo_ign${repo_ign+" -o "}-name $dir"
+done
+
+find \( -type d -a \( $repo_ign \)  \) -prune -o \
+     \( -type f -name "$2" -print0 \) |
+#LANG=C is to work around grep multibyte inefficiencies
+#GREP_COLOR="1;37;47" is bright yellow on black bg
+GREP_COLOR="1;33;40" LANG=C xargs -r0 grep $colour $grep_options "$1"

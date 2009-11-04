@@ -1,0 +1,19 @@
+#!/bin/sh
+
+# print date for a file as ls would
+
+if [ $# -eq 1 ]; then
+    ts=`date --reference=$1 +%s` || exit 1
+else
+    ts=`date +%s`
+fi
+
+now=`date +%s`
+recent=`date --date="-6 months" +%s`
+
+if [ "$ts" -lt "$recent" ] || [ "$ts" -gt "$now" ]; then
+    format="+%b %e  %Y"
+else
+    format="+%b %e %R"
+fi
+date --date="1970-01-01 UTC $ts sec" "$format"

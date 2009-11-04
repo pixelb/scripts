@@ -1,0 +1,20 @@
+#!/bin/sh
+#
+# I find this handy for demos where I can magnify as much of the origonal
+# screen as possible to the full screen size and specified magnification.
+#
+# Note this only allows for the xmag menu on the fullscreen display.
+# So you should make xmag fullscreen, ie remove titlebar etc (shift+F11 in gnome).
+
+[ ! -z "$1" ] && mag=$1 || mag=2
+
+fullscreen_xmag_source() {
+    #could also do: geometry=`xdpyinfo | grep dimensions | tr -s ' ' | cut -d' ' -f3`
+    geometry=`xwininfo -root | grep -E "geometry" | sed 's/.* \([0-9]*x[0-9]*\).*/\1/'`
+    width=`echo $geometry | cut -dx -f1`
+    height=`echo $geometry | cut -dx -f2`
+    xmag_menu=20
+    echo `expr $width / $mag`x`expr \( $height - $xmag_menu \) / $mag`
+}
+
+xmag -source `fullscreen_xmag_source` -mag $mag

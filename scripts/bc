@@ -1,0 +1,86 @@
+#!/usr/bin/bc
+
+# bc integer functions I've found useful
+# while systems programming in the unix environment.
+
+# Author:
+#    http://www.pixelbeat.org/
+# Notes:
+#    I only use bc when python is not available.
+#    Personally I have this file in ~/bin/bc so
+#    that I can just invoke bc as normal and have these
+#    extra functions available.
+# Changes:
+#    V0.1, 11 Apr 2007, Initial release
+
+
+define min(x,y) {
+    if (x<y) return x
+    return y
+}
+
+define max(x,y) {
+    if (x>y) return x
+    return y
+}
+
+define abs(x) {
+    if (x<0) return -x
+    return x
+}
+
+/* take integer part */
+define int(x) {
+    auto old_scale   /* variables global by default */
+    old_scale=scale  /* scale is global */
+    scale=0; ret=x/1
+    scale=old_scale
+    return ret
+}
+
+/* round to nearest integer */
+define round(x) {
+    if (x<0) x-=.5 else x+=.5
+    return int(x)
+}
+
+/* smallest integer >= arg */
+define ceil(x) {
+    auto intx
+    intx=int(x)
+    if (intx<x) intx+=1
+    return intx
+}
+
+/* largest integer <= arg */
+define floor(x) {
+    return -ceil(-x)
+}
+
+/* round x to previous multiple of y */
+define round_down(x,y) {
+    return y*floor(x/y)
+}
+
+/* round x to next multiple of y */
+define round_up(x,y) {
+    return y*ceil(x/y)
+}
+
+/* round x to nearest multiple of y */
+define round_to(x,y) {
+    return y*round(x/y)
+}
+
+/* Greatest Common Divisor or Highest Common Factor of x and y */
+/* Note when people say Lowest Common Denominator they usually mean this */
+define gcd(x,y) {
+     if (y==0) return x
+     return gcd(y,x%y) /* anything that divides into x and y also divides into the remainder of x/y */
+}
+
+/* Lowest Common Multiple of x and y */
+/* Lowest Common Denominator of fractions is LCM of the denominators */
+define lcm(x,y) {
+    return (x*y/gcd(x,y))
+}

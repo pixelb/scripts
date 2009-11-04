@@ -1,0 +1,23 @@
+#!/bin/sh
+
+# Review repo changes in graphical viewer before checkin
+
+# Author:
+#   http://www.pixelbeat.org/
+# Notes:
+#   tkdiff supports svn since 4.0.
+#   meld supports svn file as a parameter since 0.9.6.
+#   One can do the same with perforce with `P4DIFF=meld p4 diff`
+#   `svn diff --diff-cmd=meld` also works but is a bit verbose
+#   and also requires the diff program to support svn specific params.
+# Changes:
+#   V0.1, 30 Dec 2006, Initial release
+#   V0.2, 23 Apr 2007, Pass on any parameters to `svn status`
+#   V0.3, 12 Feb 2008, Switch from tkdiff to meld
+
+svn status -q "$@" |
+grep '^[GM]' | #only consider Merged,Modified files
+cut -c 8- |
+while read file; do
+    meld "$file"
+done

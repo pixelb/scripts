@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# Download URLs from file (called queue) with history.
+
+# I schedule this to run every night.
+# The file called queue must be in the same dir
+# as this script and lines starting with # are ignored.
+
+cp queue queue.tmp
+
+sed "/ *#/d" queue |
+while read url; do
+    echo "#$url" >> queue.tmp
+    wget -nv "$url"
+done
+
+sed -n "/ *#/p" queue.tmp > queue
+rm -f queue.tmp

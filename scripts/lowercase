@@ -1,0 +1,41 @@
+#!/bin/sh
+
+# change any uppercase letters in file and directory
+# names in the current directory and below.
+
+# note filenames with \1 or \n will cause problems
+
+# note this is still much slower than it could be,
+# as there is a seperate mv executed for each file/dir.
+# It would be much more efficient to pass the output
+# of this to a python script for e.g. that does the rename
+
+find -depth \( -type f -o -type d \) |
+LC_ALL=C grep -E "/[^/]*[A-Z]+[^/]*$" | #only process upcase names
+sed -e '
+{
+    #escape any chars that could cause problems
+    #s/\([]"{}\$]\)/\\\1/g
+
+    #keep orig path in hold space
+    h
+
+    #put basename in pattern space
+    s/.*\/\([^/]*$\)/\1/
+
+    #lowercase basename
+    y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/
+
+    #exchange pattern and hold space
+    x
+
+    #format mv args 1
+    s/\(.*\/\)\([^/]*$\)/\1\2\1/
+
+    #format mv args 2
+    G
+}' |
+
+tr -d '\n'   |    #format mv args 3
+tr '' '\0' |    #format mv args 4
+xargs -r0 -n2 mv  #execute mv

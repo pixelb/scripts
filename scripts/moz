@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# Open a file with firefox
+
+# firefox 2 now supports this so this script it now redundant.
+
+if echo "$1" | grep -Eq "^/"; then
+    path=$1
+else
+    path=`pwd`/$1
+fi
+
+path=`echo "$path" | sed 's/ /%20/g'` #really should use recode or something equivalent to be more robust
+
+firefox "file://$path" #could call htmlview or equivalent here

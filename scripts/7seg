@@ -1,0 +1,50 @@
+#!/bin/sh
+# _
+#[ ]
+#[_]
+#
+#  ]
+#  ]
+# _
+# _]
+#[_
+# _
+# _]
+# _]
+#
+#[_]
+#  ]
+# _
+#[_
+# _]
+# _
+#[_
+#[_]
+# _
+#  ]
+#  ]
+# _
+#[_]
+#[_]
+# _
+#[_]
+#  ]
+
+#!/bin/sh
+# This script is pretty useless actually but
+# demonstrates a couple of concepts:
+#  a. self referencing
+#  b. getting range of lines from a file
+#
+# example usage is:
+#  clear; for i in `seq 0 9`; do ./7seg $i; sleep 1; clear; done
+
+case $1 in
+  [0-9]) break;;
+  *) echo "Usage is $0 num, where num is 0 to 9" >&2; exit 1;;
+esac
+
+num_plus_one=`expr $1 + 1`
+lines_minus_one=`expr $num_plus_one \* 3`
+head -`expr $lines_minus_one + 1` `which $0` | tail -3 | cut -b2-
+

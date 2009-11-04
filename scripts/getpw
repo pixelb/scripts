@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# Demonstrate reading passwords in a shell script
+# while not echoing those passwords to the screen.
+
+# Note `read -s` in bash 3 at least does not echo
+# the return/newline either? Therefore we need to
+# `echo >&2` after each read to simulate that.
+
+getpassword()
+{
+    until [ "$password" = "$rpassword" -a -n "$password" ]; do
+        read -s -p "Enter a password for user '$1' : " password; echo >&2
+        read -s -p "Reenter password for user '$1' : " rpassword; echo >&2
+    done
+    echo "$password"
+}
+
+pw=`getpassword "${1:-blah}"`
+
+echo "password is '$pw'"

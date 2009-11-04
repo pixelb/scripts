@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# report text files with CRLF terminators (anywhere in the file)
+
+find \( -type d -a \( -name '.git' -o -name '.svn' -o -name 'CVS' \)  \) -prune -o \
+     \( -type f -print0 \) |
+xargs -r0 file |
+LANG=C grep -F "text, with CRLF" |
+cut -d: -f1

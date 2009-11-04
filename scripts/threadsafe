@@ -1,0 +1,24 @@
+#!/bin/sh
+
+# print functions in C/C++ files that are not threadsafe
+# Example usage:
+#     find -name "*.c" -o -name "*.cpp" | xargs threadsafe
+# If no files passed then the total list of functions
+# that are not threadsafe is printed.
+#
+# Obviously your man pages need to be accurate for this to work.
+# Redhat 9 has woefully incomplete man pages,
+# Fedora Core 3 (man-pages-1.67) has at least 12
+# missing entries from apropos (gethostbyname_r for e.g.).
+# ubuntu 5.10 (manpages-2.02-2) does seem to be up to date though.
+#
+# TODO: remove false positives like .ctime ->rand ...
+
+apropos "_r" |
+sed -n 's#\(.*\)_r .*#\1#p' |
+uniq | #remove duplicates (from posix section for example)
+if [ "$#" != "0" ]; then
+    LANG=C grep -F -f- -w -n --color="auto" "$@"
+else
+    cat
+fi

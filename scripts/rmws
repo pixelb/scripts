@@ -1,0 +1,38 @@
+#!/bin/sh
+# Remove trailing whitespace. By default it runs
+# in the current directry, on all files, but you
+# can change this by passing parameters as you
+# would to find.
+#
+# Note this doesn't change file (timestamps)
+# which don't need to be updated.
+
+#Note super sed has a -i option to do this (edit files in place)
+#also perl can edit files in place easily.
+
+# Temporary file
+temp=/tmp/runsed$$
+
+find "$@" -type f -print |
+while read file
+do
+    echo -n "editing $file: "
+    if test -s $file; then
+       sed -e 's/[ 	]*$//g' <$file > $temp
+       if test -s $temp; then
+           if cmp -s $file $temp; then
+             echo -n "file not changed: "
+           else
+             cp $temp $file
+           fi
+           echo "done"
+       else
+           echo "produced an empty file - aborting"
+       fi
+    else
+       echo "original file is empty."
+    fi
+done
+echo "all done"
+rm -f $temp
+

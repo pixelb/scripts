@@ -1,0 +1,45 @@
+#!/bin/sh
+
+# List the X compose sequences available to generate the specified character.
+# I.E. the keyboard key sequence to enter after the compose (multi) key or
+# a dead key is pressed. For more info please see:
+# http://www.pixelbeat.org/docs/xkeyboard/
+
+# Author:
+#    P@draigBrady.com
+# Notes:
+#    GTK+ apps use a different but broadly similar input method
+#    to X by default. Personally I tell GTK+ to use the X one by
+#    adding `export GTK_IM_MODULE=xim` to /etc/profile
+# Changes:
+#    V0.1, 09 Sep 2005, Initial release
+#    V0.2, 04 May 2007, Added support for ubuntu
+
+if [ "$#" != "1" ]; then
+    echo "Usage: `basename $0` 'character'" >&2
+    exit 1
+fi
+
+if echo $LANG | grep -qi 'UTF.*8'; then
+    lang=`echo $LANG | sed 's/\(.._..\).*/\1/'`
+    codeset=UTF-8
+    character="$1"
+else
+    echo "Sorry, only UTF-8 is supported at present" >&2
+    exit 1
+    #could try and normalise codeset, and get char with printf %q
+    #but would not be general enough I think.
+fi
+
+dir=/usr/share/X11/locale #new Xorg location
+if [ ! -d "$dir" ]; then
+    dir=/usr/X11R6/lib/X11/locale #older X11 location
+fi
+if [ ! -f "$dir/locale.dir" ]; then
+    echo "Sorry, couldn't find your X windows locale data" >&2
+    exit 1
+fi
+
+dir="$dir/`sed -n "s#\([^/]*\)/.*:.*$lang.$codeset#\1#p" \
+< $dir/locale.dir`"
+LANG=C grep -F "\"$character\"" $dir/Compose
