@@ -2,7 +2,7 @@
 
 # list the newest html files in the tree
 
-exclude_re='(xvpics|priv/|tmp/|timeline\.html|modified\.html|head\.html|footer\.html|adds\.html|last\.html|header.html|menu.html|left-blank.html|.htaccess)' #don't show these paths
+exclude_re='(\.git/|xvpics|priv/|tmp/|timeline\.html|modified\.html|head\.html|footer\.html|adds\.html|last\.html|header.html|menu.html|left-blank.html|.htaccess)' #don't show these paths
 
 echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
