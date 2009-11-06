@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# An enhanced ls -l
+# An enhanced and more portable ls -l
 
 # Author:
 #    http://www.pixelbeat.org/
@@ -81,7 +81,7 @@ else
   # Also we reset the dangling symlink color to "highlight"
   # as it defaults to blinking.  We could do all this in ~/.dir_colors
   # but so this script is more general, we do it here.
-  eval ` 
+  eval `
     echo "export LS_COLORS='$LS_COLORS'" |
 
     sed "
