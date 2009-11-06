@@ -2,8 +2,6 @@
 
 # An enhanced ls -l
 
-# <!--Exclude from bashfeed-->
-
 # Author:
 #    http://www.pixelbeat.org/
 # Notes:
@@ -14,6 +12,7 @@
 #                       Modify colors even when dircolors doesn't support $TERM
 #                       Don't error for ls without --group-dir or --no-group
 #    V0.3, 21 Oct 2009, Handle older ls' which pepper output with reset codes
+#    V0.4, 06 Nov 2009, Support BSD
 
 # apply thousands separator to file sizes
 export BLOCK_SIZE=\'1
@@ -31,54 +30,77 @@ else
   SYM_ARROW="->"
 fi
 
+ESC=$(printf "\x1b")
+
 # Don't enable highlighting if not outputting to terminal
 if test -t 1 || echo "$*" | grep -E -- "--color( |=always|$)" >/dev/null; then
   # Note if the user specifies --color=auto then that will override this
   # and hence the output will not be colored :(
   color_when=always
-  BLD=$(tput bold)
-  RST=$(tput sgr0)
-  HLI=$(tput smso)
-  LS_HLI=$(echo "$HLI" | sed 's/\x1b\[\(.*\)m/\1/')
+  if tput bold >/dev/null; then #terminfo
+    BLD=$(tput bold)
+    RST=$(tput sgr0)
+    HLI=$(tput smso)
+  else #termcap
+    BLD=$(tput md)
+    RST=$(tput me)
+    HLI=$(tput so)
+  fi
+  LS_HLI=$(echo "$HLI" | sed "s/$ESC\[\(.*\)m/\1/")
 else
   color_when=auto
 fi
 
-# modify the coreutils default colors if distro or user colors not set
-[ "$LS_COLORS" ] || eval $(dircolors)
-# xterm-256color not supported by older dircolors for example
-[ "$LS_COLORS" ] || eval $(TERM=xterm dircolors)
+ls --color -d . >/dev/null 2>&1 || BSD=1
 
-# Turn off the confusing entries with different backgrounds
-# as we'll highlight the mode bits and hardlink count instead.
-#
-# Also turn off capability colouring even though we don't
-# highlight anything in lieu of it, as this will short circuit
-# the slow capability checks within ls
-#
-# Also we reset the dangling symlink color to "highlight"
-# as it defaults to blinking.  We could do all this in ~/.dir_colors
-# but so this script is more general, we do it here.
-eval $(
-  echo "export LS_COLORS='$LS_COLORS'" |
+if [ "$BSD" ]; then
+  color_opt=-G
+  [ "$color_when" = "always" ] && export CLICOLOR_FORCE=1
+  color_when=
 
-  sed "
-    s/hl[^:]*:/hl=:/
-    s/mh[^:]*:/mh=:/
-    s/su[^:]*:/su=:/
-    s/sg[^:]*:/sg=:/
-    s/ow[^:]*:/ow=:/
-    s/st[^:]*:/st=:/
-    s/tw[^:]*:/tw=:/
+  # Turn off the confusing different background colors
+  # as we'll highlight the mode bits instead. Also change the
+  # main colors to match the default one on linux (coreutils).
+  export LSCOLORS="ExGxcxdxCxegedCxCxExEx"
+else
+  color_opt='--color='
+  color_never="--color=never"
+  # modify the coreutils default colors if distro or user colors not set
+  [ "$LS_COLORS" ] || eval $(dircolors)
+  # xterm-256color not supported by older dircolors for example
+  [ "$LS_COLORS" ] || eval $(TERM=xterm dircolors)
 
-    s/ca[^:]*:/ca=:/
+  # Turn off the confusing entries with different backgrounds
+  # as we'll highlight the mode bits and hardlink count instead.
+  #
+  # Also turn off capability colouring even though we don't
+  # highlight anything in lieu of it, as this will short circuit
+  # the slow capability checks within ls
+  #
+  # Also we reset the dangling symlink color to "highlight"
+  # as it defaults to blinking.  We could do all this in ~/.dir_colors
+  # but so this script is more general, we do it here.
+  eval $(
+    echo "export LS_COLORS='$LS_COLORS'" |
 
-    s/mi=[^:]\{1,\}:/mi=$LS_HLI:/
-  "
-)
+    sed "
+      s/hl[^:]*:/hl=:/
+      s/mh[^:]*:/mh=:/
+      s/su[^:]*:/su=:/
+      s/sg[^:]*:/sg=:/
+      s/ow[^:]*:/ow=:/
+      s/st[^:]*:/st=:/
+      s/tw[^:]*:/tw=:/
+
+      s/ca[^:]*:/ca=:/
+
+      s/mi=[^:]\{1,\}:/mi=$LS_HLI:/
+    "
+  )
+fi
 
 # Get locale total string to match on
-total=$(ls -s --color=never / | sed 's/\([^ ]*\).*/\1/;q')
+total=$(ls -s $color_never / | sed 's/\([^ ]*\).*/\1/;q')
 
 # Use these options if available
 ls --group-directories-first -d . >/dev/null 2>&1 && gdf=--group-directories
@@ -86,7 +108,7 @@ ls --no-group -d . >/dev/null 2>&1 && ng=--no-group
 
 # Start with the standard long format listing
 # with colours, and latest files at bottom
-ls -lrt --color=$color_when $ng $gdf "$@" |
+ls -lrt $color_opt$color_when $ng $gdf "$@" |
 
 # process with sed to...
 sed "
@@ -98,25 +120,26 @@ sed "
 
   # temporarily shrink any prepended reset codes
   # from older ls' to a single char
-  s/^\x1b\[0*m/0/
+  s/^$ESC\[0*m/0/
 
   # highlight ug+s indicators
-  s/^\(0\?.\{3\}\)\([sS]\)/\1$HLI\2$RST/
-  s/^\(0\?.\{6\}\)\([sS]\)/\1$HLI\2$RST/
+  s/^\(0\{0,1\}.\{3\}\)\([sS]\)/\1$HLI\2$RST/
+  s/^\(0\{0,1\}.\{6\}\)\([sS]\)/\1$HLI\2$RST/
 
   # highlight +t o+w indicators for directories
-  /^0\?d/!b not_dir_bit;
-  s/^\(0\?.\{9\}\)\([tT]\)/\1$HLI\2$RST/
-  s/^\(0\?.\{8\}\)w/\1${HLI}w$RST/
-  s/^\(0\?.\{3\}\)\([sS]\)/\1$HLI\2$RST/
-  s/^\(0\?.\{6\}\)\([sS]\)/\1$HLI\2$RST/
+  /^0\{0,1\}d/!b not_dir_bit
+  s/^\(0\{0,1\}.\{9\}\)\([tT]\)/\1$HLI\2$RST/
+  s/^\(0\{0,1\}.\{8\}\)w/\1${HLI}w$RST/
+  s/^\(0\{0,1\}.\{3\}\)\([sS]\)/\1$HLI\2$RST/
+  s/^\(0\{0,1\}.\{6\}\)\([sS]\)/\1$HLI\2$RST/
   :not_dir_bit
 
   # highlight multiply linked files
-  /^0\?[^d]\{10,\}/!b not_hl; /^[^ ]* *1 /b not_hl;
-  s/^\(0\?[^ ]*\)\( *\)\([0-9]\{1,\}\)/\1\2$HLI\3$RST/
+  /^0\{0,1\}[^d]\{10,\}/!b not_hl
+  /^[^ ]* *1 /b not_hl
+  s/^\(0\{0,1\}[^ ]*\)\( *\)\([0-9]\{1,\}\)/\1\2$HLI\3$RST/
   :not_hl
 
   # restore any reset codes replaced above
-  s/^0/\x1b[0m/
+  s/^0/$ESC[0m/
 "
