@@ -13,6 +13,7 @@
 #                       Don't error for ls without --group-dir or --no-group
 #    V0.3, 21 Oct 2009, Handle older ls' which pepper output with reset codes
 #    V0.4, 06 Nov 2009, Support BSD and Solaris
+#    V0.5, 23 Nov 2009, Don't enable color when $TERM doesn't support it
 
 # apply thousands separator to file sizes
 BLOCK_SIZE=\'1; export BLOCK_SIZE
@@ -33,16 +34,19 @@ fi
 
 ESC=`printf "\x1b"`
 
-# Don't enable highlighting if not outputting to terminal
-if test -t 1 || echo "$*" | grep -E -- "--color( |=always|$)" >/dev/null; then
+# Disable color if the current $TERM doesn't support it
+if ! tput setaf 1 >/dev/null 2>&1 && ! tput AF 1 >/dev/null 2>&1; then
+  color_when=
+# enable highlighting if outputting to terminal or forcing
+elif test -t 1 || echo "$*" | grep -E -- "--color( |=always|$)" >/dev/null; then
   # Note if the user specifies --color=auto then that will override this
   # and hence the output will not be colored :(
   color_when=always
-  if tput bold >/dev/null; then #terminfo
+  if tput bold >/dev/null 2>&1; then #terminfo
     BLD=`tput bold`
     RST=`tput sgr0`
     HLI=`tput smso`
-  else
+  elif tput md >/dev/null 2>&1; then #termcap
     BLD=`tput md`
     RST=`tput me`
     HLI=`tput so`
@@ -54,52 +58,53 @@ fi
 
 ls --color -d . >/dev/null 2>&1 || BSD=1
 
-if [ "$BSD" ]; then
-  ls -G -d . >/dev/null 2>&1 && color_opt=-G #not supported on Solaris
-  [ "$color_when" = "always" ] && { CLICOLOR_FORCE=1; export CLICOLOR_FORCE; }
-  color_when=
+if [ "$color_when" ]; then
+  if [ "$BSD" ]; then
+    ls -G -d . >/dev/null 2>&1 && color_opt=-G #not supported on Solaris
+    [ "$color_when" = "always" ] && { CLICOLOR_FORCE=1; export CLICOLOR_FORCE; }
+    color_when=
 
-  # Turn off the confusing different background colors
-  # as we'll highlight the mode bits instead. Also change the
-  # main colors to match the default one on linux (coreutils).
-  LSCOLORS="ExGxcxdxCxegedCxCxExEx"; export LSCOLORS
-else
-  color_opt='--color='
-  color_never="--color=never"
-  # modify the coreutils default colors if distro or user colors not set
-  [ "$LS_COLORS" ] || eval `dircolors`
-  # xterm-256color not supported by older dircolors for example
-  [ "$LS_COLORS" ] || eval `TERM=xterm dircolors`
+    # Turn off the confusing different background colors
+    # as we'll highlight the mode bits instead. Also change the
+    # main colors to match the default one on linux (coreutils).
+    LSCOLORS="ExGxcxdxCxegedCxCxExEx"; export LSCOLORS
+  else
+    color_opt='--color='
+    color_never="--color=never"
+    # modify the coreutils default colors if distro or user colors not set
+    [ "$LS_COLORS" ] || eval `dircolors`
+    # xterm-256color not supported by older dircolors for example
+    [ "$LS_COLORS" ] || eval `TERM=xterm dircolors`
 
-  # Turn off the confusing entries with different backgrounds
-  # as we'll highlight the mode bits and hardlink count instead.
-  #
-  # Also turn off capability colouring even though we don't
-  # highlight anything in lieu of it, as this will short circuit
-  # the slow capability checks within ls
-  #
-  # Also we reset the dangling symlink color to "highlight"
-  # as it defaults to blinking.  We could do all this in ~/.dir_colors
-  # but so this script is more general, we do it here.
-  eval `
-    echo "export LS_COLORS='$LS_COLORS'" |
+    # Turn off the confusing entries with different backgrounds
+    # as we'll highlight the mode bits and hardlink count instead.
+    #
+    # Also turn off capability colouring even though we don't
+    # highlight anything in lieu of it, as this will short circuit
+    # the slow capability checks within ls
+    #
+    # Also we reset the dangling symlink color to "highlight"
+    # as it defaults to blinking.  We could do all this in ~/.dir_colors
+    # but so this script is more general, we do it here.
+    eval `
+      echo "export LS_COLORS='$LS_COLORS'" |
 
-    sed "
-      s/hl[^:]*:/hl=:/
-      s/mh[^:]*:/mh=:/
-      s/su[^:]*:/su=:/
-      s/sg[^:]*:/sg=:/
-      s/ow[^:]*:/ow=:/
-      s/st[^:]*:/st=:/
-      s/tw[^:]*:/tw=:/
+      sed "
+        s/hl[^:]*:/hl=:/
+        s/mh[^:]*:/mh=:/
+        s/su[^:]*:/su=:/
+        s/sg[^:]*:/sg=:/
+        s/ow[^:]*:/ow=:/
+        s/st[^:]*:/st=:/
+        s/tw[^:]*:/tw=:/
 
-      s/ca[^:]*:/ca=:/
+        s/ca[^:]*:/ca=:/
 
-      s/mi=[^:]\{1,\}:/mi=$LS_HLI:/
-    "
-  `
+        s/mi=[^:]\{1,\}:/mi=$LS_HLI:/
+      "
+    `
+  fi
 fi
-
 # Get locale total string to match on
 total=`ls -s $color_never / | sed 's/\([^ ]*\).*/\1/;q'`
 
