@@ -32,9 +32,14 @@
 #                         Handle codes with combined attributes and color
 #                         Handle isolated <bold> attributes with css.
 #                         Strip more terminal control codes.
+#    V0.5, 27 Nov 2009, Mark Harviston <harvimt@pdx.edu>
+#                         Handle backspace characters, carriage returns and
+#                         terminal hardstatus to better handle typescripts.
+#                         Also be explicit about, and support the control codes
+#                         for, default foreground and background colors.
 
 if [ "$1" = "--version" ]; then
-    echo "0.4" && exit
+    echo "0.5" && exit
 fi
 
 if [ "$1" = "--help" ]; then
@@ -44,7 +49,7 @@ if [ "$1" = "--help" ]; then
     exit
 fi
 
-[ "$1" = "--bg=dark" ] && black_bg=yes
+[ "$1" = "--bg=dark" ] && dark_bg=yes
 
 echo -n '<html>
 <head>
@@ -59,6 +64,7 @@ echo -n '<html>
 .f5 { color: #AA00AA; }
 .f6 { color: #00AAAA; }
 .f7 { color: #AAAAAA; }
+.f9 { color: '`[ "$dark_bg" ] && echo '#AAAAAA;' || echo '#000000;'`' }
 .b0 { background-color: #000000; }
 .b1 { background-color: #AA0000; }
 .b2 { background-color: #00AA00; }
@@ -67,6 +73,7 @@ echo -n '<html>
 .b5 { background-color: #AA00AA; }
 .b6 { background-color: #00AAAA; }
 .b7 { background-color: #AAAAAA; }
+.b9 { background-color: #'`[ "$dark_bg" ] && echo '000000' || echo 'FFFFFF'`'; }
 .f0 > .bold,.bold > .f0 { color: #555555; font-weight: normal; }
 .f1 > .bold,.bold > .f1 { color: #FF5555; font-weight: normal; }
 .f2 > .bold,.bold > .f2 { color: #55FF55; font-weight: normal; }
@@ -75,8 +82,12 @@ echo -n '<html>
 .f5 > .bold,.bold > .f5 { color: #FF55FF; font-weight: normal; }
 .f6 > .bold,.bold > .f6 { color: #55FFFF; font-weight: normal; }
 .f7 > .bold,.bold > .f7 { color: #FFFFFF; font-weight: normal; }
-body.b0 > pre > .bold   { color: #FFFFFF; font-weight: normal; }
-body.b8 > pre > .bold   { font-weight: bold; } /* allow for black on white */
+.f9 > .bold,.bold > .f9, body.f9 > pre > .bold {
+  /* Bold is heavy black on white, or bright white
+     depending on the default background */
+  color: '`[ "$dark_bg" ] && echo '#FFFFFF;' || echo '#000000;'`'
+  font-weight: '`[ "$dark_bg" ] && echo 'normal;' || echo 'bold;'`'
+}
 .reverse {
   /* CSS doesnt support swapping fg and bg colours unfortunately,
      so just hardcode something that will look OK on all backgrounds. */
@@ -87,25 +98,38 @@ body.b8 > pre > .bold   { font-weight: bold; } /* allow for black on white */
 .blink { text-decoration: blink; }
 </style>
 </head>
-'
-[ "$black_bg" ] && body_class=' class="f7 b0"' || body_class=' class="b8"'
-echo -n "
-<body$body_class>
 
+<body class="f9 b9">
 <pre>
-"
+'
 
 p='\x1b\['        #shortcut to match escape codes
 P="\(^[^°]*\)¡$p" #expression to match prepended codes below
 
+# Handle various xterm control sequences.
+# See /usr/share/doc/xterm-*/ctlseqs.txt
 sed "
-# strip non SGR codes
-s#[\x0d\x07]##g
+s#\x1b[^\x1b]*\x1b\\\##g  # strip anything between \e and ST
+s#\x1b][0-9]*;[^\a]*\a##g # strip any OSC (xterm title etc.)
+
+#handle carriage returns
+s#^.*\r\{1,\}\([^$]\)#\1#
+s#\r\$## # strip trailing \r
+
+# strip other non SGR escape sequences
+s#[\x07]##g
 s#\x1b[]>=\][0-9;]*##g
 s#\x1bP+.\{5\}##g
 s#\x1b(B##g
 s#${p}[0-9;?]*[^0-9;?m]##g
 
+#remove backspace chars and what they're backspacing over
+:rm_bs
+s#[^\x08]\x08##g; t rm_bs
+" |
+
+# Normalize the input before transformation
+sed "
 # escape HTML
 s#\&#\&amp;#g; s#>#\&gt;#g; s#<#\&lt;#g; s#\"#\&quot;#g
 
@@ -123,6 +147,7 @@ s#°#\&deg;#g; s#${p}0m#°#g
 s#¡#\&iexcl;#g; s#${p}[0-9;]*m#¡&#g
 " |
 
+# Convert SGR sequences to HTML
 sed "
 :ansi_to_span # replace ANSI codes with CSS classes
 t ansi_to_span # hack so t commands below only apply to preceeding s cmd
@@ -138,8 +163,8 @@ s#${P}4m#\1<span class=\"underline\">#;                       t span_count
 s#${P}5m#\1<span class=\"blink\">#;                           t span_count
 s#${P}7m#\1<span class=\"reverse\">#;                         t span_count
 s#${P}9m#\1<span class=\"line-through\">#;                    t span_count
-s#${P}3\([0-7]\)m#\1<span class=\"f\2\">#;                    t span_count
-s#${P}4\([0-7]\)m#\1<span class=\"b\2\">#;                    t span_count
+s#${P}3\([0-9]\)m#\1<span class=\"f\2\">#;                    t span_count
+s#${P}4\([0-9]\)m#\1<span class=\"b\2\">#;                    t span_count
 
 s#${P}[0-9;]*m#\1#g; t ansi_to_span # strip unhandled codes
 
