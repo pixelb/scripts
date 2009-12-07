@@ -4,11 +4,10 @@
 
 # Author:
 #    http://www.pixelbeat.org/docs/terminal_colours/
-# Notes:
+# Examples:
+#    ls -l --color=always | ansi2html.sh > ls.html
+#    git show --color | ansi2html.sh > last_change.html
 #    Generally one can use the `script` util to capture full terminal output.
-#    We only support 16 colour terminals, so we don't support apps that output
-#    256 colours on xterm-256color. So to capture and process vim output try:
-#      TERM=xterm vim file | tee term.cap; ansi2html.sh <term.cap >term.html
 # Changes:
 #    V0.1, 24 Apr 2008, Initial release
 #    V0.2, 01 Jan 2009, Phil Harnish <philharnish@gmail.com>
@@ -21,7 +20,7 @@
 #                         Support `grep --color=always` by stripping
 #                         unhandled ANSI codes (specifically ^[[K).
 #    V0.3, 20 Mar 2009, http://eexpress.blog.ubuntu.org.cn/
-#                         Remove cat -v usage which mangled non ascii input
+#                         Remove cat -v usage which mangled non ascii input.
 #                         Cleanup regular expressions used.
 #                         Support other attributes like reverse, ...
 #                       P@draigBrady.com
@@ -29,7 +28,7 @@
 #                         Add a command line option to use a dark background.
 #                         Strip more terminal control codes.
 #    V0.4, 17 Sep 2009, P@draigBrady.com
-#                         Handle codes with combined attributes and color
+#                         Handle codes with combined attributes and color.
 #                         Handle isolated <bold> attributes with css.
 #                         Strip more terminal control codes.
 #    V0.5, 27 Nov 2009, Mark Harviston <harvimt@pdx.edu>
@@ -37,9 +36,11 @@
 #                         terminal hardstatus to better handle typescripts.
 #                         Also be explicit about, and support the control codes
 #                         for, default foreground and background colors.
+#    V0.6, 07 Dec 2009, P@draigBrady.com
+#                         Support 256 colours.
 
 if [ "$1" = "--version" ]; then
-    echo "0.5" && exit
+    echo "0.6" && exit
 fi
 
 if [ "$1" = "--help" ]; then
@@ -56,32 +57,55 @@ echo -n '<html>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <style type="text/css">
 /* linux console palette */
-.f0 { color: #000000; }
-.f1 { color: #AA0000; }
-.f2 { color: #00AA00; }
-.f3 { color: #AA5500; }
-.f4 { color: #0000AA; }
-.f5 { color: #AA00AA; }
-.f6 { color: #00AAAA; }
-.f7 { color: #AAAAAA; }
+.ef0,.f0 { color: #000000; } .eb0,.b0 { background-color: #000000; }
+.ef1,.f1 { color: #AA0000; } .eb1,.b1 { background-color: #AA0000; }
+.ef2,.f2 { color: #00AA00; } .eb2,.b2 { background-color: #00AA00; }
+.ef3,.f3 { color: #AA5500; } .eb3,.b3 { background-color: #AA5500; }
+.ef4,.f4 { color: #0000AA; } .eb4,.b4 { background-color: #0000AA; }
+.ef5,.f5 { color: #AA00AA; } .eb5,.b5 { background-color: #AA00AA; }
+.ef6,.f6 { color: #00AAAA; } .eb6,.b6 { background-color: #00AAAA; }
+.ef7,.f7 { color: #AAAAAA; } .eb7,.b7 { background-color: #AAAAAA; }
+.ef8, .f0 > .bold,.bold > .f0 { color: #555555; font-weight: normal; }
+.ef9, .f1 > .bold,.bold > .f1 { color: #FF5555; font-weight: normal; }
+.ef10,.f2 > .bold,.bold > .f2 { color: #55FF55; font-weight: normal; }
+.ef11,.f3 > .bold,.bold > .f3 { color: #FFFF55; font-weight: normal; }
+.ef12,.f4 > .bold,.bold > .f4 { color: #5555FF; font-weight: normal; }
+.ef13,.f5 > .bold,.bold > .f5 { color: #FF55FF; font-weight: normal; }
+.ef14,.f6 > .bold,.bold > .f6 { color: #55FFFF; font-weight: normal; }
+.ef15,.f7 > .bold,.bold > .f7 { color: #FFFFFF; font-weight: normal; }
+.eb8  { background-color: #555555; }
+.eb9  { background-color: #FF5555; }
+.eb10 { background-color: #55FF55; }
+.eb11 { background-color: #FFFF55; }
+.eb12 { background-color: #5555FF; }
+.eb13 { background-color: #FF55FF; }
+.eb14 { background-color: #55FFFF; }
+.eb15 { background-color: #FFFFFF; }
+'
+
+# The default xterm 256 colour palette
+for red in $(seq 0 5); do
+  for green in $(seq 0 5); do
+    for blue in $(seq 0 5); do
+        c=$((16 + ($red * 36) + ($green * 6) + $blue))
+        r=$((($red ? ($red * 40 + 55) : 0)))
+        g=$((($green ? ($green * 40 + 55) : 0)))
+        b=$((($blue ? ($blue * 40 + 55) : 0)))
+        printf ".ef%d { color: #%2.2x%2.2x%2.2x; } " $c $r $g $b
+        printf ".eb%d { background-color: #%2.2x%2.2x%2.2x; }\n" $c $r $g $b
+    done
+  done
+done
+for gray in $(seq 0 23); do
+  c=$(($gray+232))
+  l=$(($gray*10 + 8))
+  printf ".ef%d { color: #%2.2x%2.2x%2.2x; } " $c $l $l $l
+  printf ".eb%d { background-color: #%2.2x%2.2x%2.2x; }\n" $c $l $l $l
+done
+
+echo -n '
 .f9 { color: '`[ "$dark_bg" ] && echo '#AAAAAA;' || echo '#000000;'`' }
-.b0 { background-color: #000000; }
-.b1 { background-color: #AA0000; }
-.b2 { background-color: #00AA00; }
-.b3 { background-color: #AA5500; }
-.b4 { background-color: #0000AA; }
-.b5 { background-color: #AA00AA; }
-.b6 { background-color: #00AAAA; }
-.b7 { background-color: #AAAAAA; }
 .b9 { background-color: #'`[ "$dark_bg" ] && echo '000000' || echo 'FFFFFF'`'; }
-.f0 > .bold,.bold > .f0 { color: #555555; font-weight: normal; }
-.f1 > .bold,.bold > .f1 { color: #FF5555; font-weight: normal; }
-.f2 > .bold,.bold > .f2 { color: #55FF55; font-weight: normal; }
-.f3 > .bold,.bold > .f3 { color: #FFFF55; font-weight: normal; }
-.f4 > .bold,.bold > .f4 { color: #5555FF; font-weight: normal; }
-.f5 > .bold,.bold > .f5 { color: #FF55FF; font-weight: normal; }
-.f6 > .bold,.bold > .f6 { color: #55FFFF; font-weight: normal; }
-.f7 > .bold,.bold > .f7 { color: #FFFFFF; font-weight: normal; }
 .f9 > .bold,.bold > .f9, body.f9 > pre > .bold {
   /* Bold is heavy black on white, or bright white
      depending on the default background */
@@ -96,6 +120,7 @@ echo -n '<html>
 .underline { text-decoration: underline; }
 .line-through { text-decoration: line-through; }
 .blink { text-decoration: blink; }
+
 </style>
 </head>
 
@@ -134,11 +159,21 @@ sed "
 s#\&#\&amp;#g; s#>#\&gt;#g; s#<#\&lt;#g; s#\"#\&quot;#g
 
 # normalize SGR codes a little
+
+# split 256 colors out and mark so that they're not
+# recognised by the following 'split combined' line
+:e
+s#${p}\([0-9;]\{1,\}\);\([34]8;5;[0-9]\{1,3\}\)m#${p}\1m${p}¬\2m#g; t e
+s#${p}\([34]8;5;[0-9]\{1,3\}\)m#${p}¬\1m#g;
+
 :c
 s#${p}\([0-9]\{1,\}\);\([0-9;]\{1,\}\)m#${p}\1m${p}\2m#g; t c   # split combined
 s#${p}0\([0-7]\)#${p}\1#g                                 #strip leading 0
-s#${p}1m\(\(${p}[4579]m\)*\)#\1${p}1m#g;                  #bold last (with clr)
+s#${p}1m\(\(${p}[4579]m\)*\)#\1${p}1m#g                   #bold last (with clr)
 s#${p}m#${p}0m#g                                          #add leading 0 to norm
+
+# undo any 256 color marking
+s#${p}¬\([34]8;5;[0-9]\{1,3\}\)m#${p}\1m#g;
 
 # change 'reset' code to a single char, and prepend a single char to
 # other codes so that we can easily do negative matching, as sed
@@ -165,6 +200,9 @@ s#${P}7m#\1<span class=\"reverse\">#;                         t span_count
 s#${P}9m#\1<span class=\"line-through\">#;                    t span_count
 s#${P}3\([0-9]\)m#\1<span class=\"f\2\">#;                    t span_count
 s#${P}4\([0-9]\)m#\1<span class=\"b\2\">#;                    t span_count
+
+s#${P}38;5;\([0-9]\{1,3\}\)m#\1<span class=\"ef\2\">#;        t span_count
+s#${P}48;5;\([0-9]\{1,3\}\)m#\1<span class=\"eb\2\">#;        t span_count
 
 s#${P}[0-9;]*m#\1#g; t ansi_to_span # strip unhandled codes
 
