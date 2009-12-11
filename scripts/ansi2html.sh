@@ -37,10 +37,12 @@
 #                         Also be explicit about, and support the control codes
 #                         for, default foreground and background colors.
 #    V0.6, 07 Dec 2009, P@draigBrady.com
-#                         Support 256 colours.
+#                         Support 256 colour xterm codes.
+#    V0.7, 11 Dec 2009, P@draigBrady.com
+#                         Support 16 color xterm codes.
 
 if [ "$1" = "--version" ]; then
-    echo "0.6" && exit
+    echo "0.7" && exit
 fi
 
 if [ "$1" = "--help" ]; then
@@ -174,6 +176,10 @@ s#${p}m#${p}0m#g                                          #add leading 0 to norm
 
 # undo any 256 color marking
 s#${p}¬\([34]8;5;[0-9]\{1,3\}\)m#${p}\1m#g;
+
+# map 16 color codes to color + bold
+s#${p}9\([0-7]\)m#${p}3\1m${p}1m#g;
+s#${p}10\([0-7]\)m#${p}4\1m${p}1m#g;
 
 # change 'reset' code to a single char, and prepend a single char to
 # other codes so that we can easily do negative matching, as sed
