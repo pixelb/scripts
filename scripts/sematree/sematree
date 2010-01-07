@@ -1,0 +1,64 @@
+#!/bin/sh
+
+# semaphore functions for locking
+
+trap "" 1 2 3 6 #try to be atomic
+
+# $workdir must be writeable or be creatable
+if [ "$workdir" = "" ]; then
+    workdir=/var/run/sematree
+fi
+
+usage()
+{
+    echo "Usage: `basename $0` {acquire,release,inc,dec} lock_name [seconds to wait]"
+    exit 1
+}
+
+if [ $# -lt 2 ]; then usage; fi
+name=$2
+action=$1
+if [ $# -ge 3 ]; then
+    seconds=$3
+else
+    seconds=-1 #forever
+fi
+
+if [ ! -d $workdir ]; then
+    #race here handled by -p
+    mkdir -p $workdir
+fi
+lockname=$workdir/$name
+semaname=$workdir/$name.sem
+
+case $action in
+
+acquire)
+
+    until mkdir $lockname 2>/dev/null; do
+        if [ $seconds -eq 0 ]; then exit 1; fi
+        if [ ! $seconds -eq "-1" ]; then seconds=`expr $seconds - 1`; fi
+        sleep 1
+    done ;;
+
+inc|dec)
+
+    if [ ! -d $lockname ]; then
+        echo "can't increment or decrement without acquiring first"
+        exit 1
+    fi
+
+    [ -f $semaname ] && cur_val=`cat $semaname` || cur_val=0
+    [ $action = inc ] && op=+ || op=-
+    cur_val=`expr $cur_val $op 1`
+    [ $cur_val -eq 0 ] && rm $semaname || echo $cur_val > $semaname
+    echo $cur_val ;;
+
+release)
+
+    [ ! -d $lockname ] && exit 1 || rmdir $lockname ;;
+
+*)
+    usage ;;
+
+esac
