@@ -1,27 +1,39 @@
 #!/bin/sh
 
-# semaphore functions for locking
+# process independent locking utility
 
-trap "" 1 2 3 6 #try to be atomic
+# Author:
+#    http://www.pixelbeat.org/
+# Notes:
+#    There is a C equivalent of this implemented using open(EXCL)
+#    rather than mkdir for illustration, available from the above web site.
+# Changes:
+#    V0.1, 02 Apr 2003, Initial release
+#    V0.2, 23 Feb 2006, Add trap so signals don't mess up atomic operations
+#    V0.3, 06 Jan 2010, Use shell arithmetic and faster polling
+
+trap "" HUP INT QUIT ABRT #try to be atomic
+
+POLL_FREQ=10 #Hz Must be 1,10,100,...
+DELAY=$(echo $POLL_FREQ | sed 's/1\(.*\)0/.\11/')
 
 # $workdir must be writeable or be creatable
-if [ "$workdir" = "" ]; then
-    workdir=/var/run/sematree
-fi
+[ "$workdir" ] || workdir=/var/run/sematree
 
-usage()
-{
-    echo "Usage: `basename $0` {acquire,release,inc,dec} lock_name [seconds to wait]"
+usage() {
+    echo "\
+Usage: $(basename $0) {acquire,release,inc,dec} lock_name [seconds to wait]\
+" >&2
     exit 1
 }
 
-if [ $# -lt 2 ]; then usage; fi
-name=$2
+[ $# -lt 2 ] && usage
 action=$1
+name=$2
 if [ $# -ge 3 ]; then
-    seconds=$3
+    count=$(($3 * $POLL_FREQ))
 else
-    seconds=-1 #forever
+    count=-1 #forever
 fi
 
 if [ ! -d $workdir ]; then
@@ -32,33 +44,24 @@ lockname=$workdir/$name
 semaname=$workdir/$name.sem
 
 case $action in
-
 acquire)
-
     until mkdir $lockname 2>/dev/null; do
-        if [ $seconds -eq 0 ]; then exit 1; fi
-        if [ ! $seconds -eq "-1" ]; then seconds=`expr $seconds - 1`; fi
-        sleep 1
+        [ $count -eq 0 ] && exit 1
+        [ ! $count -eq "-1" ] && count=$(($count - 1))
+        sleep $DELAY
     done ;;
-
 inc|dec)
-
     if [ ! -d $lockname ]; then
-        echo "can't increment or decrement without acquiring first"
+        echo "can't increment or decrement without acquiring first" >&2
         exit 1
     fi
-
-    [ -f $semaname ] && cur_val=`cat $semaname` || cur_val=0
+    [ -f $semaname ] && cur_val=$(cat $semaname) || cur_val=0
     [ $action = inc ] && op=+ || op=-
-    cur_val=`expr $cur_val $op 1`
+    cur_val=$(($cur_val $op 1))
     [ $cur_val -eq 0 ] && rm $semaname || echo $cur_val > $semaname
     echo $cur_val ;;
-
 release)
-
     [ ! -d $lockname ] && exit 1 || rmdir $lockname ;;
-
 *)
     usage ;;
-
 esac
