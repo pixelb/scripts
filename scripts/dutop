@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-# Show top disk space users in current directoy,
-# while automatically recursing down directories
-# if there is one obvious directory using the space.
+# Show top disk space users in current directory,
+# while automatically recursing down directories if
+# there is one obvious directory using the space.
 
 # Author: P@draigBrady.com
 
