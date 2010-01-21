@@ -3,7 +3,7 @@
 # Display ENAME corresponding to number
 # or all ENAMEs if no number specified.
 
-[ "$#" -ne "1" ] && re="[^ ]+\$" || re=$1\$
+[ $# -eq 1 ] && re="$1([^0-9]|$)"
 echo "#include <errno.h>" |
-cpp -dD |
-grep -E "#define E[^ ]+ $re"
+cpp -dD -CC | #-CC available since GCC 3.3 (2003)
+grep -E "^#define E[^ ]+ $re"
