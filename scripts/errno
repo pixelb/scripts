@@ -3,12 +3,7 @@
 # Display ENAME corresponding to number
 # or all ENAMEs if no number specified.
 
-if [ "$#" -ne "1" ]; then
-    re="[^ ]+\$"
-else
-    re=$1\$
-fi
-
+[ "$#" -ne "1" ] && re="[^ ]+\$" || re=$1\$
 echo "#include <errno.h>" |
 cpp -dD |
 grep -E "#define E[^ ]+ $re"
