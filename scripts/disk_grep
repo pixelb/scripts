@@ -17,21 +17,21 @@ usage() {
     exit 1
 }
 
-COLUMNS=80
+COLUMNS=$(tput cols)
 
 #pass % complete
 progress() {
-    DONE=$(((($COLUMNS-2)*$1)/100))
+    DONE=$(( (($COLUMNS-2)*$1)/100 ))
     TODO=$(($COLUMNS-2-$DONE))
-    DONE=$(yes = | head -n$DONE | tr -d '\n')
-    TODO=$(yes - | head -n$TODO | tr -d '\n')
-    echo -ne "[$DONE$TODO]\r" > /dev/tty
+    DONE=$(printf "%${DONE}s" | tr ' ' =)
+    TODO=$(printf "%${TODO}s" | tr ' ' -)
+    printf "[$DONE$TODO]\r" > /dev/tty
 }
 
 #pass strings to stdout
 print() {
-    CLEAR=$(yes " " | head -n$COLUMNS | tr -d '\n')
-    echo -ne "$CLEAR\r"
+    CLEAR=$(printf "%${COLUMNS}s")
+    printf "$CLEAR\r"
     echo "$@"
 }
 
