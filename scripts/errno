@@ -8,4 +8,4 @@ echo "#include <errno.h>" |
 cpp -dD -CC | #-CC available since GCC 3.3 (2003)
 grep -E "^#define E[^ ]+ $re" |
 sed ':s;s#/\*\([^ ]*\) #/*\1_#;t s;' | column -t | tr _ ' ' | #align
-cut -c1-$COLUMNS | #truncate to screen width
+cut -c1-$(tput cols) #truncate to screen width
