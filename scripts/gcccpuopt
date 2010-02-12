@@ -56,9 +56,11 @@
 #   V0.99.3, 11 Aug 2009, Support for AMD Geode LX processor.
 #   V0.99.4, 24 Oct 2009, Following a report from Maxime de Roucy, add support
 #                         for AMD family 17 (griffin).
+#   V0.99.5, 11 Feb 2010, Following a report from Craig Whipp, add support
+#                         for Intel Atom family 28 on BSD.
 
 if [ "$1" = "--version" ]; then
-    echo "0.99.4" && exit
+    echo "0.99.5" && exit
 fi
 
 # This table shows when -march options were introduced into _official_ gcc releases.
@@ -147,8 +149,8 @@ read_cpu_data_freebsd() {
         if [ -n "`echo $_line | grep '^  Origin = '`" ]; then
             vendor_id="`echo $_line | sed -e 's/^  Origin = .//' -e 's/[^A-Za-z0-9].*$//'`"
             _cpu_id="`echo $_line | sed -e 's/^.*Id = //' -e 's/ .*$//' -e 'y/abcdef/ABCDEF/'`"
-            cpu_family=$((($_cpu_id & 0xF0F) >> 8))
-            cpu_model=$((($_cpu_id & 0xF0) >> 4))
+            cpu_family=$(( ($_cpu_id & 0xF0F) >> 8 )) #FreeBSD 5.0 sh doesn't support 0x
+            cpu_model=$(( (($_cpu_id & 0xF0) >> 4) + (($_cpu_id & 0xF0000) >> 12) ))
         fi
         if [ -n "`echo $_line | grep '^  Features='`" ]; then
             flags="`echo $_line | sed -e 's/^.*<//' -e 's/>.*//' -e 's/,/ /g' | tr 'A-Z' 'a-z'`"
