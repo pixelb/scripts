@@ -5,11 +5,11 @@
 # Author:
 #    http://www.pixelbeat.org/
 # Notes:
+#    Note there is a timeout command packaged with coreutils since v7.0
 #    If the timeout occurs the exit status is 124.
 #    There is an asynchronous (and buggy) equivalent of this
 #    script packaged with bash (under /usr/share/doc/ in my distro),
 #    which I only noticed after writing this.
-#    Note there is a timeout command packaged with coreutils since v7.0
 #    I noticed later again that there is a C equivalent of this packaged
 #    with satan by Wietse Venema, and copied to forensics by Dan Farmer.
 # Changes:

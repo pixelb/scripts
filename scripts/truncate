@@ -5,10 +5,10 @@
 # Author:
 #    http://www.pixelbeat.org/
 # Notes:
-#    This is a thin wrapper around the truncate functionality of dd.
 #    There is a truncate command packaged with coreutils since v7.0,
 #    and available on FreeBSD for ages. These are more functional as
 #    they allow specifying relative sizes and mandating the file exists.
+#    This is a thin wrapper around the truncate functionality of dd.
 # Changes:
 #    V1.0, 16 Dec 2005  Initial release
 
