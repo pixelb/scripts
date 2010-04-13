@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # search disk for a string and output commands to dump matching sections
 
@@ -11,6 +11,7 @@
 #      sudo su - $USER
 # Changes:
 #    V0.1, 20 Apr 2008, Initial release
+#    V0.2, 10 Apr 2010, Enforce bash (for PIPESTATUS)
 
 usage() {
     echo "Usage: $(basename $0) file|device string" >&2
