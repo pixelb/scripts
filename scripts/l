@@ -15,6 +15,7 @@
 #    V0.3, 21 Oct 2009, Handle older ls' which pepper output with reset codes
 #    V0.4, 06 Nov 2009, Support BSD and Solaris
 #    V0.5, 23 Nov 2009, Don't enable color when $TERM doesn't support it
+#    V0.6, 27 Apr 2010, Support OpenBSD (colorls)
 
 # apply thousands separator to file sizes
 BLOCK_SIZE=\'1; export BLOCK_SIZE
@@ -57,11 +58,14 @@ else
   color_when=auto
 fi
 
-ls --color -d . >/dev/null 2>&1 || BSD=1
+ls=ls #default to standard name
+
+$ls --color -d . >/dev/null 2>&1 || BSD=1
 
 if [ "$color_when" ]; then
   if [ "$BSD" ]; then
-    ls -G -d . >/dev/null 2>&1 && color_opt=-G #not supported on Solaris
+    colorls -d . >/dev/null 2>&1 && ls=colorls # for OpenBSD
+    $ls -G -d . >/dev/null 2>&1 && color_opt=-G #not supported on Solaris
     [ "$color_when" = "always" ] && { CLICOLOR_FORCE=1; export CLICOLOR_FORCE; }
     color_when=
 
@@ -107,15 +111,15 @@ if [ "$color_when" ]; then
   fi
 fi
 # Get locale total string to match on
-total=`ls -s $color_never / | sed 's/\([^ ]*\).*/\1/;q'`
+total=`$ls -s $color_never / | sed 's/\([^ ]*\).*/\1/;q'`
 
 # Use these options if available
-ls --group-directories-first -d . >/dev/null 2>&1 && gdf=--group-directories
-ls --no-group -d . >/dev/null 2>&1 && ng=--no-group
+$ls --group-directories-first -d . >/dev/null 2>&1 && gdf=--group-directories
+$ls --no-group -d . >/dev/null 2>&1 && ng=--no-group
 
 # Start with the standard long format listing
 # with colours, and latest files at bottom
-ls -lrt $color_opt$color_when $ng $gdf "$@" |
+$ls -lrt $color_opt$color_when $ng $gdf "$@" |
 
 # process with sed to...
 sed "
