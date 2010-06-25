@@ -6,7 +6,6 @@
 #    http://www.pixelbeat.org/
 # Notes:
 #    A symlink target may loose info as there are no mode bits to highlight.
-#    Specifying -i or -x or -C will mess up the output.
 # Changes:
 #    V0.1, 18 Sep 2009, Initial release
 #    V0.2, 30 Sep 2009, Correctly strip "total" line for all locales
@@ -16,6 +15,8 @@
 #    V0.4, 06 Nov 2009, Support BSD and Solaris
 #    V0.5, 23 Nov 2009, Don't enable color when $TERM doesn't support it
 #    V0.6, 27 Apr 2010, Support OpenBSD (colorls)
+#    V0.7, 15 Jun 2010, Handle either hl= or mh= in $LS_COLORS
+#                       Bypass some processing for -Cisx output formats
 
 # apply thousands separator to file sizes
 BLOCK_SIZE=\'1; export BLOCK_SIZE
@@ -91,12 +92,20 @@ if [ "$color_when" ]; then
     # Also we reset the dangling symlink color to "highlight"
     # as it defaults to blinking.  We could do all this in ~/.dir_colors
     # but so this script is more general, we do it here.
+
+    # Newer ls use "mh" to represent the color for multi hardlinked
+    # files so handle the backwards incompatability with "hl"
+    if   dircolors | grep -F "mh=" >/dev/null; then
+      hl_no_color="s/hl[^:]*:/mh=:/; s/mh[^:]*:/mh=:/"
+    elif dircolors | grep -F "hl=" >/dev/null; then
+      hl_no_color="s/mh[^:]*:/hl=:/; s/hl[^:]*:/hl=:/"
+    fi
+
     eval `
       echo "export LS_COLORS='$LS_COLORS'" |
 
       sed "
-        s/hl[^:]*:/hl=:/
-        s/mh[^:]*:/mh=:/
+        $hl_no_color
         s/su[^:]*:/su=:/
         s/sg[^:]*:/sg=:/
         s/ow[^:]*:/ow=:/
@@ -117,6 +126,11 @@ total=`$ls -s $color_never / | sed 's/\([^ ]*\).*/\1/;q'`
 $ls --group-directories-first -d . >/dev/null 2>&1 && gdf=--group-directories
 $ls --no-group -d . >/dev/null 2>&1 && ng=--no-group
 
+# Bypass long format manipulation if any # of following formats are specified
+# FIXME: Matching options like this is a bit brittle
+lfmt=lfmt
+echo "$*" | grep -E -- "-(i|x|s|C)" >/dev/null && lfmt=""
+
 # Start with the standard long format listing
 # with colours, and latest files at bottom
 $ls -lrt $color_opt$color_when $ng $gdf "$@" |
@@ -128,6 +142,10 @@ sed "
 
   # prettify symlink arrows
   s/ -> / $BLD$SYM_ARROW$RST /
+
+  # Conditionally process long format output
+  b $lfmt
+  :lfmt
 
   # temporarily shrink any prepended reset codes
   # from older ls' to a single char
