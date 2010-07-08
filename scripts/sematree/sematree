@@ -7,10 +7,13 @@
 # Notes:
 #    There is a C equivalent of this implemented using open(EXCL)
 #    rather than mkdir for illustration, available from the above web site.
+#    There is a lockf util in BSD that supports locks external to commands,
+#    and is not susceptiple to stale locks being left on the filesystem.
 # Changes:
 #    V0.1, 02 Apr 2003, Initial release
 #    V0.2, 23 Feb 2006, Add trap so signals don't mess up atomic operations
 #    V0.3, 06 Jan 2010, Use shell arithmetic and faster polling
+#    V0.4, 08 Jul 2010, Don't hang if can't create $workdir
 
 trap "" HUP INT QUIT ABRT #try to be atomic
 
@@ -40,6 +43,7 @@ if [ ! -d $workdir ]; then
     #race here handled by -p
     mkdir -p $workdir
 fi
+[ -d $workdir ] || exit 1
 lockname=$workdir/$name
 semaname=$workdir/$name.sem
 
