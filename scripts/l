@@ -17,13 +17,18 @@
 #    V0.6, 27 Apr 2010, Support OpenBSD (colorls)
 #    V0.7, 15 Jun 2010, Handle either hl= or mh= in $LS_COLORS
 #                       Bypass some processing for -Cisx output formats
+#    V0.8, 23 Jul 2010, Don't mangle directory headings:
+#                       Work around bash inefficiency with globbing $LS_COLORS
+#                       Don't use non portable `export var=val` syntax.
 
 # apply thousands separator to file sizes
 BLOCK_SIZE=\'1; export BLOCK_SIZE
 
-# traditional unix time format with abbreviated month translated from locale
+# Traditional unix time format with abbreviated month translated from locale.
 # en_* locales default to ISO format without this for reasons discussed here:
 # http://lists.gnu.org/archive/html/bug-coreutils/2009-09/msg00433.html
+# Note as of coreutils 8.6, `ls` will again use traditional rather than ISO
+# format, unless otherwise specified by translators.
 TIME_STYLE='+%b %e  %Y
 %b %e %H:%M'
 export TIME_STYLE
@@ -101,10 +106,14 @@ if [ "$color_when" ]; then
       hl_no_color="s/mh[^:]*:/hl=:/; s/hl[^:]*:/hl=:/"
     fi
 
-    eval `
-      echo "export LS_COLORS='$LS_COLORS'" |
+    # The extra quoting (wrapping in "") is required for
+    # speed in bash where it inefficiently tries to glob
+    # for each *.ext component of LS_COLORS, which is
+    # noticeably slow in directories with many files.
+    eval "`
+      echo LS_COLORS=\'\"$LS_COLORS\"\'\; |
 
-      sed "
+      sed \"
         $hl_no_color
         s/su[^:]*:/su=:/
         s/sg[^:]*:/sg=:/
@@ -115,8 +124,10 @@ if [ "$color_when" ]; then
         s/ca[^:]*:/ca=:/
 
         s/mi=[^:]\{1,\}:/mi=$LS_HLI:/
-      "
-    `
+      \"
+
+      echo 'export LS_COLORS'
+    `"
   fi
 fi
 # Get locale total string to match on
@@ -137,7 +148,7 @@ $ls -lrt $color_opt$color_when $ng $gdf "$@" |
 
 # process with sed to...
 sed "
-  # Remove total line I never use
+  # Remove total line(s) I never use
   /$total [0-9,. ]\{1,\}$/d
 
   # prettify symlink arrows
@@ -146,6 +157,9 @@ sed "
   # Conditionally process long format output
   b $lfmt
   :lfmt
+
+  # Ignore directory name headings
+  /^[^ ]\{1,\}:$/b
 
   # temporarily shrink any prepended reset codes
   # from older ls' to a single char
