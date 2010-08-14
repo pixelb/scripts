@@ -58,9 +58,11 @@
 #                         for AMD family 17 (griffin).
 #   V0.99.5, 11 Feb 2010, Following a report from Craig Whipp, add support
 #                         for Intel Atom family 28 on BSD.
+#   V0.99.6, 14 Aug 2010, Following a report from Denis Fortin, add support
+#                         for GeodeGX1 (AMD SC1100) (used in Soekris net4801).
 
 if [ "$1" = "--version" ]; then
-    echo "0.99.5" && exit
+    echo "0.99.6" && exit
 fi
 
 # This table shows when -march options were introduced into _official_ gcc releases.
@@ -118,8 +120,8 @@ read_cpu_data_linux() {
     IFS=":"
     while read name value; do
         unset IFS
-        name=`echo $name`
-        value=`echo $value`
+        name=`echo $name` #strip spaces
+        value=`echo $value | sed 's/\([^ ]*\).*/\1/'` #take first word
         IFS=":"
         if [ "$name" = "vendor_id" ]; then
             vendor_id="$value"
@@ -272,6 +274,16 @@ elif [ "$vendor_id" = "GenuineIntel" ]; then
         line="pentium4 pentium3 pentium2 pentiumpro pentium-mmx pentium i486 i386"
         if [ $cpu_model -ge 3 ]; then
             line="prescott $line"
+        fi
+    fi
+elif [ "$vendor_id" = "Geode" ]; then #by NSC
+    if [ $cpu_family -eq 5 ]; then
+        if [ \( $cpu_model -eq 4 \) -o \( $cpu_model -eq 9 \) ]; then
+            # Note both models 4 and 9 have cmov.
+            # In addition, model 9 has cxmmx.
+            # Note also, the "geode" gcc arch is for newer AMD geode cores
+            # and is not appropriate for this older core.
+            line="pentium-mmx pentium"
         fi
     fi
 fi
