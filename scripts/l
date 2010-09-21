@@ -20,6 +20,8 @@
 #    V0.8, 23 Jul 2010, Don't mangle directory headings:
 #                       Work around bash inefficiency with globbing $LS_COLORS
 #                       Don't use non portable `export var=val` syntax.
+#    V0.9, 21 Sep 2010, Don't rely on printf (or sed) supporting \x.
+#                       Bypass some processing for --help and --version output
 
 # apply thousands separator to file sizes
 BLOCK_SIZE=\'1; export BLOCK_SIZE
@@ -40,7 +42,7 @@ else
   SYM_ARROW="->"
 fi
 
-ESC=`printf "\x1b"`
+ESC=`printf '\033'`
 
 # Disable color if the current $TERM doesn't support it
 if ! tput setaf 1 >/dev/null 2>&1 && ! tput AF 1 >/dev/null 2>&1; then
@@ -137,10 +139,10 @@ total=`$ls -s $color_never / | sed 's/\([^ ]*\).*/\1/;q'`
 $ls --group-directories-first -d . >/dev/null 2>&1 && gdf=--group-directories
 $ls --no-group -d . >/dev/null 2>&1 && ng=--no-group
 
-# Bypass long format manipulation if any # of following formats are specified
+# Bypass long format manipulation if any of following formats are specified
 # FIXME: Matching options like this is a bit brittle
 lfmt=lfmt
-echo "$*" | grep -E -- "-(i|x|s|C)" >/dev/null && lfmt=""
+echo "$*" | grep -E -- "-(i|x|s|C|-version|-help)" >/dev/null && lfmt=""
 
 # Start with the standard long format listing
 # with colours, and latest files at bottom
