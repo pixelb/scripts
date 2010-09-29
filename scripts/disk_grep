@@ -52,7 +52,7 @@ CHUNK_SIZE=$((8*1024*1024))
 if [ -b "$DISK" ]; then
     SIZE=$(/sbin/blockdev --getsize64 $DISK) || exit $? #reads from disk?
 else
-    SIZE=$(find "$DISK" -printf "%s") || exit $?
+    SIZE=$(stat --format %s "$DISK") || exit $?
 fi
 [ $SIZE -eq 0 ] && exit
 CHUNKS=$((($SIZE+$CHUNK_SIZE-1)/$CHUNK_SIZE))
