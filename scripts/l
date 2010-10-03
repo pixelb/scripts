@@ -72,7 +72,7 @@ $ls --color -d . >/dev/null 2>&1 || BSD=1
 
 if [ "$color_when" ]; then
   if [ "$BSD" ]; then
-    colorls -d . >/dev/null 2>&1 && ls=colorls # for OpenBSD
+    { colorls -d .; } >/dev/null 2>&1 && ls=colorls # for OpenBSD
     $ls -G -d . >/dev/null 2>&1 && color_opt=-G #not supported on Solaris
     [ "$color_when" = "always" ] && { CLICOLOR_FORCE=1; export CLICOLOR_FORCE; }
     color_when=
