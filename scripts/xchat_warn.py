@@ -9,8 +9,8 @@
 #    This plugin requires that xchat-python is installed
 # Changes:
 #    V1.0, 02 Dec 2005, Initial release
-#    V2.0, 04 Nov 2009, Changes from Tim Kersten
-#                         More accurate (nick) matching
+#    V2.0, 04 Nov 2009
+#      http://github.com/pixelb/scripts/commits/master/scripts/xchat_warn.py
 
 
 __module_name__ = "xchat_warn"

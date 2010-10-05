@@ -11,7 +11,8 @@
 #      sudo su - $USER
 # Changes:
 #    V0.1, 20 Apr 2008, Initial release
-#    V0.2, 10 Apr 2010, Enforce bash (for PIPESTATUS)
+#    V0.3, 29 Sep 2010
+#      http://github.com/pixelb/scripts/commits/master/scripts/disk_grep
 
 usage() {
     echo "Usage: $(basename $0) file|device string" >&2

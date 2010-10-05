@@ -4,17 +4,12 @@
 # I.E. it displays what packages break if you remove the specified packages.
 # In other words what packages should you remove in addition to those specified.
 
-# Author: P@draigBrady.com
-
-# V1.0      17 Jan 2006     Initial release
-# V1.1      01 Feb 2010     Fix RPM epoch handling
-
-# NOTES:
-#
-# 1. It works on both rpm and deb distros.
-#
-# 2. We do a (recursive) simulated erase on the specified packages, as that
-#    seems to be the only way to get the appropriate dependent packages as:
+# Author:
+#    http://www.pixelbeat.org/
+# Notes:
+#   1. It works on both rpm and deb distros.
+#   2. We do a (recursive) simulated erase on the specified packages, as that
+#      seems to be the only way to get the appropriate dependent packages as:
 #     * rpm -q --whatrequires package
 #        . Doesn't have a --recurse option.
 #        . Doesn't include file dependencies.
@@ -26,6 +21,11 @@
 #        . This includes all types of dependencies (suggests, conflicts, ...).
 #          There is an --important option, but as of apt-0.6.40.1ubuntu9
 #          that option is ignored for the rdepends subcommand.
+# Changes:
+#    V1.0      17 Jan 2006     Initial release
+#    V1.1      01 Feb 2010
+#      http://github.com/pixelb/scripts/commits/master/scripts/whatrequires
+
 
 #TODO, Auto handle absolute paths as well as packages.
 #TODO, rpm specifies versions while dpkg doesn't. Should make consistent.

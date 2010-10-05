@@ -56,10 +56,8 @@
 #   V0.99.3, 11 Aug 2009, Support for AMD Geode LX processor.
 #   V0.99.4, 24 Oct 2009, Following a report from Maxime de Roucy, add support
 #                         for AMD family 17 (griffin).
-#   V0.99.5, 11 Feb 2010, Following a report from Craig Whipp, add support
-#                         for Intel Atom family 28 on BSD.
-#   V0.99.6, 14 Aug 2010, Following a report from Denis Fortin, add support
-#                         for GeodeGX1 (AMD SC1100) (used in Soekris net4801).
+#   V0.99.6, 14 Aug 2010
+#     http://github.com/pixelb/scripts/commits/master/scripts/gcccpuopt
 
 if [ "$1" = "--version" ]; then
     echo "0.99.6" && exit

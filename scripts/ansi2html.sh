@@ -31,15 +31,8 @@
 #                         Handle codes with combined attributes and color.
 #                         Handle isolated <bold> attributes with css.
 #                         Strip more terminal control codes.
-#    V0.5, 27 Nov 2009, Mark Harviston <harvimt@pdx.edu>
-#                         Handle backspace characters, carriage returns and
-#                         terminal hardstatus to better handle typescripts.
-#                         Also be explicit about, and support the control codes
-#                         for, default foreground and background colors.
-#    V0.6, 07 Dec 2009, P@draigBrady.com
-#                         Support 256 colour xterm codes.
-#    V0.7, 11 Dec 2009, P@draigBrady.com
-#                         Support 16 color xterm codes.
+#    V0.7, 11 Dec 2009
+#      http://github.com/pixelb/scripts/commits/master/scripts/ansi2html.sh
 
 if [ "$1" = "--version" ]; then
     echo "0.7" && exit

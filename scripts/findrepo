@@ -20,7 +20,8 @@
 #                       Support passing extra user specified options to grep
 #    V0.3, 26 Mar 2008, Fix bug generating $repo_ign dirs
 #    V0.4, 30 Sep 2008, Tweak grep colour to be usable on light terminals
-#    V0.5, 25 Jan 2010, Make immune to files starting with '-' (option char)
+#    V0.5, 25 Jan 2010
+#      http://github.com/pixelb/scripts/commits/master/scripts/findrepo
 
 usage() {
 (

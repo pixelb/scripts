@@ -12,16 +12,9 @@
 #                       Modify colors even when dircolors doesn't support $TERM
 #                       Don't error for ls without --group-dir or --no-group
 #    V0.3, 21 Oct 2009, Handle older ls' which pepper output with reset codes
-#    V0.4, 06 Nov 2009, Support BSD and Solaris
-#    V0.5, 23 Nov 2009, Don't enable color when $TERM doesn't support it
-#    V0.6, 27 Apr 2010, Support OpenBSD (colorls)
-#    V0.7, 15 Jun 2010, Handle either hl= or mh= in $LS_COLORS
-#                       Bypass some processing for -Cisx output formats
-#    V0.8, 23 Jul 2010, Don't mangle directory headings:
-#                       Work around bash inefficiency with globbing $LS_COLORS
-#                       Don't use non portable `export var=val` syntax.
-#    V0.9, 21 Sep 2010, Don't rely on printf (or sed) supporting \x.
-#                       Bypass some processing for --help and --version output
+#
+#    V1.0, 04 Oct 2010
+#      http://github.com/pixelb/scripts/commits/master/scripts/l
 
 # apply thousands separator to file sizes
 BLOCK_SIZE=\'1; export BLOCK_SIZE
