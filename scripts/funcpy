@@ -163,15 +163,19 @@ def bits(i):
 
 #=============================================================
 
-import os, sys
+import os, errno, sys
 
-# The following exits cleanly on Ctrl-C,
+# The following exits cleanly on Ctrl-C or EPIPE
 # while treating other exceptions as before.
-def cli_exception(type, value, tb):
-    if not issubclass(type, KeyboardInterrupt):
-        sys.__excepthook__(type, value, tb)
-if sys.stdin.isatty():
-    sys.excepthook=cli_exception
+def std_exceptions(etype, value, tb):
+    sys.excepthook=sys.__excepthook__
+    if issubclass(etype, KeyboardInterrupt):
+        pass
+    elif issubclass(etype, IOError) and value.errno == errno.EPIPE:
+        pass
+    else:
+        sys.__excepthook__(etype, value, tb)
+sys.excepthook=std_exceptions
 
 functions={
     #name:       (func,       input,  type)
@@ -197,6 +201,7 @@ def Usage():
     sys.stderr.write("Note python expressions must be stateless (no ifs or assigments)\n")
     sys.stderr.write("       --imports=mod1,mod2,...    modules to import for use in python expression\n")
     sys.stderr.write("       --help                     display this help\n")
+    sys.stderr.close()
     sys.exit(1)
 
 
@@ -262,13 +267,7 @@ try:
             result = func(num)
             if result!=None:
                 print result
-except IOError, value:
-    if value.errno==32: #EPIPE (piping to head for example)
-        pass
-    else:
-        raise
+    sys.stdout.close()
 except ValueError, value:
     sys.stderr.write(str(value)+"\n")
     sys.exit(1)
-except KeyboardInterrupt:
-    pass

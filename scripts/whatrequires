@@ -34,14 +34,19 @@ debug=False
 
 import sys
 import os
+import errno
 
-# The following exits cleanly on Ctrl-C,
+# The following exits cleanly on Ctrl-C or EPIPE
 # while treating other exceptions as before.
-def cli_exception(type, value, tb):
-    if not issubclass(type, KeyboardInterrupt):
-        sys.__excepthook__(type, value, tb)
-if sys.stdin.isatty():
-    sys.excepthook=cli_exception
+def std_exceptions(etype, value, tb):
+    sys.excepthook=sys.__excepthook__
+    if issubclass(etype, KeyboardInterrupt):
+        pass
+    elif issubclass(etype, IOError) and value.errno == errno.EPIPE:
+        pass
+    else:
+        sys.__excepthook__(etype, value, tb)
+sys.excepthook=std_exceptions
 
 # Determine what type of distro we're on.
 class distroType:
@@ -96,15 +101,18 @@ def notInstalled(packages):
 packages=sys.argv[1:]
 if "--help" in packages or len(packages)==0:
     sys.stderr.write("Usage: %s package1 [package2 ...]\n" % os.path.split(sys.argv[0])[1])
+    sys.stderr.close()
     sys.exit(1)
 
 ni_list = notInstalled(packages)
 if ni_list:
     sys.stderr.write("Error: The following packages are not installed:\n")
     sys.stderr.write("%s\n"%'\n'.join(ni_list))
+    sys.stderr.close()
     sys.exit(1)
 
 whatRequires(packages)
 requires_packages = '\n'.join([p for p in checked_pkgs if p not in packages])
 if requires_packages:
     sys.stdout.write("%s\n"%requires_packages)
+    sys.stdout.close()
