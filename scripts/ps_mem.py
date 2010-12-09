@@ -114,15 +114,18 @@ def kernel_ver():
 kv=kernel_ver()
 
 have_pss=0
+have_swap=0
 
 #return Private,Shared
 #Note shared is always a subset of rss (trs is not always)
 def getMemStats(pid):
     global have_pss
+    global have_swap
     mem_id = pid #unique
     Private_lines=[]
     Shared_lines=[]
     Pss_lines=[]
+    Swap_lines=[]
     Rss=int(open("/proc/"+str(pid)+"/statm", "rt").readline().split()[1])*PAGESIZE
     if os.path.exists("/proc/"+str(pid)+"/smaps"): #stat
         digester = md5_new()
@@ -138,9 +141,13 @@ def getMemStats(pid):
             elif line.startswith("Pss"):
                 have_pss=1
                 Pss_lines.append(line)
+            elif line.startswith("Swap"):
+                have_swap=1
+                Swap_lines.append(line)
         mem_id = digester.hexdigest()
         Shared=sum([int(line.split()[1]) for line in Shared_lines])
         Private=sum([int(line.split()[1]) for line in Private_lines])
+        Swap=sum([int(line.split()[1]) for line in Swap_lines])
         #Note Shared + Private = Rss above
         #The Rss in smaps includes video card mem etc.
         if have_pss:
@@ -154,7 +161,7 @@ def getMemStats(pid):
         Shared=int(open("/proc/"+str(pid)+"/statm", "rt").readline().split()[2])
         Shared*=PAGESIZE
         Private = Rss - Shared
-    return (Private, Shared, mem_id)
+    return (Private, Shared, Swap, mem_id)
 
 def getCmdName(pid):
     cmdline = open("/proc/%d/cmdline" % pid, "rt").read().split("\0")
@@ -189,6 +196,7 @@ cmds={}
 shareds={}
 mem_ids={}
 count={}
+swaps={}
 for pid in os.listdir("/proc/"):
     if not pid.isdigit():
         continue
@@ -203,7 +211,7 @@ for pid in os.listdir("/proc/"):
         #process gone
         continue
     try:
-        private, shared, mem_id = getMemStats(pid)
+        private, shared, swap, mem_id = getMemStats(pid)
     except:
         continue #process gone
     if shareds.get(cmd):
@@ -213,6 +221,8 @@ for pid in os.listdir("/proc/"):
             shareds[cmd]=shared
     else:
         shareds[cmd]=shared
+    if have_swap:
+        swaps[cmd] = swaps.setdefault(cmd, 0) + swap
     cmds[cmd]=cmds.setdefault(cmd,0)+private
     if cmd in count:
        count[cmd] += 1
@@ -257,15 +267,34 @@ def cmd_with_count(cmd, count):
        return cmd
 
 if __name__ == '__main__':
-    sys.stdout.write(" Private  +   Shared  =  RAM used\tProgram \n\n")
+    total_swap=0
+    if have_swap:
+        sys.stdout.write(" Private  +   Shared  =  RAM used    [swap]\tProgram \n\n")
+    else:
+        sys.stdout.write(" Private  +   Shared  =  RAM used\tProgram \n\n")
     for cmd in sort_list:
-        sys.stdout.write("%8sB + %8sB = %8sB\t%s\n" % (human(cmd[1]-shareds[cmd[0]]),
+        if have_swap:
+            total_swap += swaps[cmd[0]]
+            sys.stdout.write("%8sB + %8sB = %8sB  [%8sB]\t%s\n" % 
+                (
+                    human(cmd[1]-shareds[cmd[0]]),
+                    human(shareds[cmd[0]]), human(cmd[1]),
+                    human(swaps[cmd[0]]), 
+                    cmd_with_count(cmd[0], count[cmd[0]])
+                )
+            )
+        else:
+            sys.stdout.write("%8sB + %8sB = %8sB\t%s\n" % (human(cmd[1]-shareds[cmd[0]]),
                                         human(shareds[cmd[0]]), human(cmd[1]),
                                         cmd_with_count(cmd[0], count[cmd[0]])))
     if have_pss:
         sys.stdout.write("%s\n%s%8sB\n%s\n" % ("-" * 33,
             " " * 24, human(total), "=" * 33))
-    sys.stdout.write("\n Private  +   Shared  =  RAM used\tProgram \n\n")
+    if have_swap:
+        sys.stdout.write("\n Private  +   Shared  =  RAM used    [swap]\tProgram \n\n")
+        print "total swap usage:", human(total_swap)
+    else:
+        sys.stdout.write("\n Private  +   Shared  =  RAM used\tProgram \n\n")
     # We must close explicitly, so that any EPIPE exception
     # is handled by our excepthook, rather than the default
     # one which is reenabled after this script finishes.
