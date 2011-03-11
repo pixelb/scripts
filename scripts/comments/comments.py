@@ -1,6 +1,6 @@
 # vim:fileencoding=utf8
 """
- Copyright © 2008 Pádraig Brady <P@draigBrady.com>
+ Copyright © 2011 Pádraig Brady <P@draigBrady.com>
 
  <!--Exclude from bashfeed-->
  This program is free software; you can redistribute it and/or modify
@@ -64,6 +64,8 @@ class MainPage(webapp.RequestHandler):
       self.response.out.write("""<html>
 <head>
 <link rel="shortcut icon" href="http://www.pixelbeat.org/favicon.ico" type="image/x-icon"/>
+<!-- The following stops prefetching of domains (of urls provided by commenters) -->
+<meta http-equiv="x-dns-prefetch-control" content="off">
 <style type="text/css">
 a { /*add :link for external links*/
     text-decoration: none; /* don't underline links by default */
