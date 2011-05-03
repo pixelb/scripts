@@ -31,52 +31,89 @@
 #                         Handle codes with combined attributes and color.
 #                         Handle isolated <bold> attributes with css.
 #                         Strip more terminal control codes.
-#    V0.7, 11 Dec 2009
+#    V0.8, 04 May 2011
 #      http://github.com/pixelb/scripts/commits/master/scripts/ansi2html.sh
 
 if [ "$1" = "--version" ]; then
-    echo "0.7" && exit
+    echo "0.8" && exit
 fi
 
 if [ "$1" = "--help" ]; then
     echo "This utility converts ANSI codes in data passed to stdin" >&2
-    echo "It has 1 optional parameter: --bg=dark" >&2
+    echo "It has 2 optional parameters:" >&2
+    echo "   --bg=dark --palette=linux|solarized|tango|xterm" >&2
     echo "E.g.: ls -l --color=always | ansi2html.sh --bg=dark > ls.html" >&2
     exit
 fi
 
-[ "$1" = "--bg=dark" ] && dark_bg=yes
+[ "$1" = "--bg=dark" ] && { dark_bg=yes; shift; }
 
-echo -n '<html>
+if [ "$1" = "--palette=solarized" ]; then
+   # See http://ethanschoonover.com/solarized
+   P0=073642;  P1=D30102;  P2=859900;  P3=B58900;
+   P4=268BD2;  P5=D33682;  P6=2AA198;  P7=EEE8D5;
+   P8=002B36;  P9=CB4B16; P10=586E75; P11=657B83;
+  P12=839496; P13=6C71C4; P14=93A1A1; P15=FDF6E3;
+  shift;
+elif [ "$1" = "--palette=solarized-xterm" ]; then
+   # Above mapped onto the xterm 256 color palette
+   P0=262626;  P1=AF0000;  P2=5F8700;  P3=AF8700;
+   P4=0087FF;  P5=AF005F;  P6=00AFAF;  P7=E4E4E4;
+   P8=1C1C1C;  P9=D75F00; P10=585858; P11=626262;
+  P12=808080; P13=5F5FAF; P14=8A8A8A; P15=FFFFD7;
+  shift;
+elif [ "$1" = "--palette=tango" ]; then
+   # Gnome default
+   P0=000000;  P1=CC0000;  P2=4E9A06;  P3=C4A000;
+   P4=3465A4;  P5=75507B;  P6=06989A;  P7=D3D7CF;
+   P8=555753;  P9=EF2929; P10=8AE234; P11=FCE94F;
+  P12=729FCF; P13=AD7FA8; P14=34E2E2; P15=EEEEEC;
+  shift;
+elif [ "$1" = "--palette=xterm" ]; then
+   P0=000000;  P1=CD0000;  P2=00CD00;  P3=CDCD00;
+   P4=1E90FF;  P5=CD00CD;  P6=00CDCD;  P7=E5E5E5;
+   P8=4C4C4C;  P9=FF0000; P10=00FF00; P11=FFFF00;
+  P12=4682B4; P13=FF00FF; P14=00FFFF; P15=FFFFFF;
+  shift;
+else # linux console
+   P0=000000;  P1=AA0000;  P2=00AA00;  P3=AA5500;
+   P4=0000AA;  P5=AA00AA;  P6=00AAAA;  P7=AAAAAA;
+   P8=555555;  P9=FF5555; P10=55FF55; P11=FFFF55;
+  P12=5555FF; P13=FF55FF; P14=55FFFF; P15=FFFFFF;
+  [ "$1" = "--palette=linux" ] && shift
+fi
+
+[ "$1" = "--bg=dark" ] && { dark_bg=yes; shift; }
+
+echo -n "<html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-<style type="text/css">
-/* linux console palette */
-.ef0,.f0 { color: #000000; } .eb0,.b0 { background-color: #000000; }
-.ef1,.f1 { color: #AA0000; } .eb1,.b1 { background-color: #AA0000; }
-.ef2,.f2 { color: #00AA00; } .eb2,.b2 { background-color: #00AA00; }
-.ef3,.f3 { color: #AA5500; } .eb3,.b3 { background-color: #AA5500; }
-.ef4,.f4 { color: #0000AA; } .eb4,.b4 { background-color: #0000AA; }
-.ef5,.f5 { color: #AA00AA; } .eb5,.b5 { background-color: #AA00AA; }
-.ef6,.f6 { color: #00AAAA; } .eb6,.b6 { background-color: #00AAAA; }
-.ef7,.f7 { color: #AAAAAA; } .eb7,.b7 { background-color: #AAAAAA; }
-.ef8, .f0 > .bold,.bold > .f0 { color: #555555; font-weight: normal; }
-.ef9, .f1 > .bold,.bold > .f1 { color: #FF5555; font-weight: normal; }
-.ef10,.f2 > .bold,.bold > .f2 { color: #55FF55; font-weight: normal; }
-.ef11,.f3 > .bold,.bold > .f3 { color: #FFFF55; font-weight: normal; }
-.ef12,.f4 > .bold,.bold > .f4 { color: #5555FF; font-weight: normal; }
-.ef13,.f5 > .bold,.bold > .f5 { color: #FF55FF; font-weight: normal; }
-.ef14,.f6 > .bold,.bold > .f6 { color: #55FFFF; font-weight: normal; }
-.ef15,.f7 > .bold,.bold > .f7 { color: #FFFFFF; font-weight: normal; }
-.eb8  { background-color: #555555; }
-.eb9  { background-color: #FF5555; }
-.eb10 { background-color: #55FF55; }
-.eb11 { background-color: #FFFF55; }
-.eb12 { background-color: #5555FF; }
-.eb13 { background-color: #FF55FF; }
-.eb14 { background-color: #55FFFF; }
-.eb15 { background-color: #FFFFFF; }
-'
+<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/>
+<style type=\"text/css\">
+.ef0,.f0 { color: #$P0; } .eb0,.b0 { background-color: #$P0; }
+.ef1,.f1 { color: #$P1; } .eb1,.b1 { background-color: #$P1; }
+.ef2,.f2 { color: #$P2; } .eb2,.b2 { background-color: #$P2; }
+.ef3,.f3 { color: #$P3; } .eb3,.b3 { background-color: #$P3; }
+.ef4,.f4 { color: #$P4; } .eb4,.b4 { background-color: #$P4; }
+.ef5,.f5 { color: #$P5; } .eb5,.b5 { background-color: #$P5; }
+.ef6,.f6 { color: #$P6; } .eb6,.b6 { background-color: #$P6; }
+.ef7,.f7 { color: #$P7; } .eb7,.b7 { background-color: #$P7; }
+.ef8, .f0 > .bold,.bold > .f0 { color: #$P8; font-weight: normal; }
+.ef9, .f1 > .bold,.bold > .f1 { color: #$P9; font-weight: normal; }
+.ef10,.f2 > .bold,.bold > .f2 { color: #$P10; font-weight: normal; }
+.ef11,.f3 > .bold,.bold > .f3 { color: #$P11; font-weight: normal; }
+.ef12,.f4 > .bold,.bold > .f4 { color: #$P12; font-weight: normal; }
+.ef13,.f5 > .bold,.bold > .f5 { color: #$P13; font-weight: normal; }
+.ef14,.f6 > .bold,.bold > .f6 { color: #$P14; font-weight: normal; }
+.ef15,.f7 > .bold,.bold > .f7 { color: #$P15; font-weight: normal; }
+.eb8  { background-color: #$P8; }
+.eb9  { background-color: #$P9; }
+.eb10 { background-color: #$P10; }
+.eb11 { background-color: #$P11; }
+.eb12 { background-color: #$P12; }
+.eb13 { background-color: #$P13; }
+.eb14 { background-color: #$P14; }
+.eb15 { background-color: #$P15; }
+"
 
 # The default xterm 256 colour palette
 for red in $(seq 0 5); do
@@ -99,18 +136,18 @@ for gray in $(seq 0 23); do
 done
 
 echo -n '
-.f9 { color: '`[ "$dark_bg" ] && echo '#AAAAAA;' || echo '#000000;'`' }
-.b9 { background-color: #'`[ "$dark_bg" ] && echo '000000' || echo 'FFFFFF'`'; }
+.f9 { color: '`[ "$dark_bg" ] && echo "#$P7;" || echo "#$P0;"`' }
+.b9 { background-color: #'`[ "$dark_bg" ] && echo $P0 || echo $P7`'; }
 .f9 > .bold,.bold > .f9, body.f9 > pre > .bold {
   /* Bold is heavy black on white, or bright white
      depending on the default background */
-  color: '`[ "$dark_bg" ] && echo '#FFFFFF;' || echo '#000000;'`'
+  color: '`[ "$dark_bg" ] && echo "#$P15;" || echo "#$P0;"`'
   font-weight: '`[ "$dark_bg" ] && echo 'normal;' || echo 'bold;'`'
 }
 .reverse {
   /* CSS doesnt support swapping fg and bg colours unfortunately,
      so just hardcode something that will look OK on all backgrounds. */
-  color: #000000; background-color: #AAAAAA;
+  '"color: #$P0; background-color: #$P7;"'
 }
 .underline { text-decoration: underline; }
 .line-through { text-decoration: line-through; }
