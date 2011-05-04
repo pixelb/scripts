@@ -31,11 +31,11 @@
 #                         Handle codes with combined attributes and color.
 #                         Handle isolated <bold> attributes with css.
 #                         Strip more terminal control codes.
-#    V0.8, 04 May 2011
+#    V0.9, 04 May 2011
 #      http://github.com/pixelb/scripts/commits/master/scripts/ansi2html.sh
 
 if [ "$1" = "--version" ]; then
-    echo "0.8" && exit
+    echo "0.9" && exit
 fi
 
 if [ "$1" = "--help" ]; then
@@ -177,7 +177,6 @@ s#\r\$## # strip trailing \r
 s#[\x07]##g
 s#\x1b[]>=\][0-9;]*##g
 s#\x1bP+.\{5\}##g
-s#\x1b(B##g
 s#${p}[0-9;?]*[^0-9;?m]##g
 
 #remove backspace chars and what they're backspacing over
@@ -261,7 +260,72 @@ x
 x
 s#°##
 b ansi_to_span
-"
+" |
+
+# Convert alternative character set
+# Note we convert here, as if we do at start we have to worry about avoiding
+# conversion of SGR codes etc., whereas doing here we only have to
+# avoid conversions of stuff between &...; or <...>
+#
+# Note we could use sed to do this based around:
+#   sed 'y/abcdefghijklmnopqrstuvwxyz{}`~/▒␉␌␍␊°±␤␋┘┐┌└┼⎺⎻─⎼⎽├┤┴┬│≤≥π£◆·/'
+# However that would be very awkward as we need to only conv some input.
+# The basic scheme that we do in the python script below is:
+#  1. enable transliterate once ¡ char seen
+#  2. disable once µ char seen (may be on diff line to ¡)
+#  3. never transliterate between &; or <> chars
+sed "
+# change 'smacs' and 'rmacs' to a single char so that we can easily do
+# negative matching, as sed does not support look behind expressions etc.
+# Note we don't use ° like above as that's part of the alternate charset.
+s#\x1b(0#¡#g;
+s#µ#\&micro;#g; s#\x1b(B#µ#g
+" |
+(
+python -c "
+# vim:fileencoding=utf8
+
+import sys
+import locale
+encoding=locale.getpreferredencoding()
+
+old='abcdefghijklmnopqrstuvwxyz{}\`~'
+new='▒␉␌␍␊°±␤␋┘┐┌└┼⎺⎻─⎼⎽├┤┴┬│≤≥π£◆·'
+new=unicode(new, 'utf-8')
+table=range(128)
+for o,n in zip(old, new): table[ord(o)]=n
+
+(STANDARD, ALTERNATIVE, HTML_TAG, HTML_ENTITY) = (0, 1, 2, 3)
+
+state = STANDARD
+last_mode = STANDARD
+for c in unicode(sys.stdin.read(), encoding):
+  if state == HTML_TAG:
+    if c == '>':
+      state = last_mode
+  elif state == HTML_ENTITY:
+    if c == ';':
+      state = last_mode
+  else:
+    if c == '<':
+      state = HTML_TAG
+    elif c == '&':
+      state = HTML_ENTITY
+    elif c == u'¡' and state == STANDARD:
+      state = ALTERNATIVE
+      last_mode = ALTERNATIVE
+      continue
+    elif c == u'µ' and state == ALTERNATIVE:
+      state = STANDARD
+      last_mode = STANDARD
+      continue
+    elif state == ALTERNATIVE:
+      c = c.translate(table)
+  sys.stdout.write(c.encode(encoding))
+" 2>/dev/null ||
+sed 's/[¡µ]//g' # just strip aternative flag chars
+)
+
 echo "</pre>
 </body>
 </html>"
