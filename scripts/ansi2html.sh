@@ -31,11 +31,11 @@
 #                         Handle codes with combined attributes and color.
 #                         Handle isolated <bold> attributes with css.
 #                         Strip more terminal control codes.
-#    V0.9, 04 May 2011
+#    V0.10, 04 May 2011
 #      http://github.com/pixelb/scripts/commits/master/scripts/ansi2html.sh
 
 if [ "$1" = "--version" ]; then
-    echo "0.9" && exit
+    echo "0.10" && exit
 fi
 
 if [ "$1" = "--help" ]; then
@@ -71,9 +71,9 @@ elif [ "$1" = "--palette=tango" ]; then
   shift;
 elif [ "$1" = "--palette=xterm" ]; then
    P0=000000;  P1=CD0000;  P2=00CD00;  P3=CDCD00;
-   P4=1E90FF;  P5=CD00CD;  P6=00CDCD;  P7=E5E5E5;
-   P8=4C4C4C;  P9=FF0000; P10=00FF00; P11=FFFF00;
-  P12=4682B4; P13=FF00FF; P14=00FFFF; P15=FFFFFF;
+   P4=0000EE;  P5=CD00CD;  P6=00CDCD;  P7=E5E5E5;
+   P8=7F7F7F;  P9=FF0000; P10=00FF00; P11=FFFF00;
+  P12=5C5CFF; P13=FF00FF; P14=00FFFF; P15=FFFFFF;
   shift;
 else # linux console
    P0=000000;  P1=AA0000;  P2=00AA00;  P3=AA5500;
