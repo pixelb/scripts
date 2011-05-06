@@ -31,11 +31,11 @@
 #                         Handle codes with combined attributes and color.
 #                         Handle isolated <bold> attributes with css.
 #                         Strip more terminal control codes.
-#    V0.10, 04 May 2011
+#    V0.11, 06 May 2011
 #      http://github.com/pixelb/scripts/commits/master/scripts/ansi2html.sh
 
 if [ "$1" = "--version" ]; then
-    echo "0.10" && exit
+    echo "0.11" && exit
 fi
 
 if [ "$1" = "--help" ]; then
@@ -120,9 +120,9 @@ for red in $(seq 0 5); do
   for green in $(seq 0 5); do
     for blue in $(seq 0 5); do
         c=$((16 + ($red * 36) + ($green * 6) + $blue))
-        r=$((($red ? ($red * 40 + 55) : 0)))
-        g=$((($green ? ($green * 40 + 55) : 0)))
-        b=$((($blue ? ($blue * 40 + 55) : 0)))
+        r=$((($red * 40 + 55) * ($red > 0)))
+        g=$((($green * 40 + 55) * ($green > 0)))
+        b=$((($blue * 40 + 55) * ($blue > 0)))
         printf ".ef%d { color: #%2.2x%2.2x%2.2x; } " $c $r $g $b
         printf ".eb%d { background-color: #%2.2x%2.2x%2.2x; }\n" $c $r $g $b
     done
