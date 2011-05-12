@@ -5,7 +5,7 @@
 # Author:
 #    http://www.pixelbeat.org/
 # Notes:
-#    A symlink target may loose info as there are no mode bits to highlight.
+#    A symlink target may lose info as there are no mode bits to highlight.
 # Changes:
 #    V0.1, 18 Sep 2009, Initial release
 #    V0.2, 30 Sep 2009, Correctly strip "total" line for all locales
