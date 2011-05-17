@@ -7,11 +7,12 @@
 # Changes:
 #    V0.1, 24 Apr 2008, Initial release
 #    V0.2, 30 Oct 2009, Support dash
-#    V0.3, 03 Mar 2011
+#    V0.4, 17 May 2011
 #      http://github.com/pixelb/scripts/commits/master/scripts/ansi_colours.sh
 
 e="\033["
-vline=$(tput smacs; printf 'x'; tput rmacs)
+vline=$(tput smacs 2>/dev/null; printf 'x'; tput rmacs 2>/dev/null)
+[ "$vline" = "x" ] && vline="|"
 
 #printf "${e}4m%80s${e}0m\n"
 printf "${e}1;4mf\\\\b${e}0m${e}4m none  white    black     red     \
