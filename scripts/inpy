@@ -13,7 +13,7 @@
 #      http://github.com/pixelb/scripts/commits/master/scripts/inpy
 
 
-import os
+import os, errno
 class _readline:
     history=os.path.join(os.environ['HOME'],'.inpy_history')
     import readline
@@ -23,13 +23,13 @@ class _readline:
     def __init__(self):
         try:
             self.readline.read_history_file(self.history)
-        except:
-            raise
+        except (IOError, OSError), value:
+            if value.errno == errno.ENOENT:
+                pass
+            else:
+                raise
     def __del__(self):
-        try:
-            self.readline.write_history_file(self.history)
-        except:
-            raise
+        self.readline.write_history_file(self.history)
 _rl=_readline()
 
 import sys
