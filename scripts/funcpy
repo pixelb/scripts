@@ -15,6 +15,7 @@
 # Changes:
 #    V1.0, 01 Nov 2006, Initial release
 #    V1.1, 30 Nov 2007, Added 'uniq' (example of many to many)
+#    V1.2, 11 Jun 2011, Added 'uniq_c' and 'count' (really from @raymondh)
 
 # Examples:
 #
@@ -109,13 +110,6 @@ if used_compiled:
     except:
         pass
 
-def uniq(iterator):
-    state=None
-    for line in iterator:
-        if line != state:
-            yield line
-        state=line
-
 def factorial(x):
     return reduce(operator.mul, xrange(1,int(x)+1))
 
@@ -123,6 +117,22 @@ def add(iter):
     return reduce(operator.add, iter)
 if used_compiled:
     add=__builtins__.sum #should be slightly more specific (faster)
+
+def count(iterator):
+    return add(1 for x in iterator)
+
+def uniq(iterator):
+    state=None
+    for line in iterator:
+        if line != state:
+            yield line
+        state=line
+    # Using the groupby equivalent is slightly slower:
+    # return (k for k, g in itertools.groupby(iterator))
+
+def uniq_c(iterator):
+    return ("%7d %s" % (count(g), k)
+            for k, g in itertools.groupby(iterator))
 
 def min(iter):
     state=None
@@ -185,7 +195,9 @@ functions={
     'avg':       (avg,        float,  'mto1'),
     'all':       (all,        float,  'mto1'),
     'any':       (any,        float,  'mto1'),
+    'count':     (count,      str,    'mto1'),
     'uniq':      (uniq,       str,    'mtom'),
+    'uniq_c':    (uniq_c,     str,    'mtom'),
     #Following really of minimal use
     #'dec2hex':   (dec2hex,    str,   '1to1'),
     #'hex2dec':   (hex2dec,    str,   '1to1'),
