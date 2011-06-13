@@ -1,8 +1,8 @@
 #!/usr/bin/python
 
-# Takes lines from stdin and processes with predefined functions like add,avg, etc.
-# The user can also supply a python expression to process each line with, and
-# in this regard is similar to perl -n -e 'expression'
+# Process lines from stdin with python functions
+# Functions are either predefined or user supplied,
+# the latter being similar to perl -n -e 'expression'.
 # Update June 9 2009, I noticed a similar script called pyline:
 #   http://code.activestate.com/recipes/437932/
 
@@ -15,7 +15,7 @@
 # Changes:
 #    V1.0, 01 Nov 2006, Initial release
 #    V1.1, 30 Nov 2007, Added 'uniq' (example of many to many)
-#    V1.2, 11 Jun 2011, Added 'uniq_c' and 'count' (really from @raymondh)
+#    V1.3, 13 Jun 2011, Added 'count','head','uniq_c' & 'uniq_d' (from @raymondh)
 
 # Examples:
 #
@@ -118,6 +118,15 @@ def add(iter):
 if used_compiled:
     add=__builtins__.sum #should be slightly more specific (faster)
 
+def head(iterator, n=10):
+    return (x for x,i in zip(iterator, range(n)))
+    # Note the following more general inspector
+    # return itertools.islice(iterator,n)
+
+#def tail(iterator, n=10):
+#    import collections
+#    return collections.deque(iterator, maxlen=n)
+
 def count(iterator):
     return add(1 for x in iterator)
 
@@ -133,6 +142,9 @@ def uniq(iterator):
 def uniq_c(iterator):
     return ("%7d %s" % (count(g), k)
             for k, g in itertools.groupby(iterator))
+
+def uniq_d(iterator):
+    return (k for k, g in itertools.groupby(iterator) if count(head(g,2)) > 1)
 
 def min(iter):
     state=None
@@ -150,14 +162,10 @@ def max(iter):
 if used_compiled:
     max=__builtins__.max
 
-#could we more efficiently (get rid of local iteration with tee maybe?)
-def avg(iter):
-    total=0
-    count=0
-    for i in iter:
-        total+=i
-        count+=1
-    return total/count
+def avg(iterator):
+    # Note math.fsum doesn't lose precision while adding lots of small numbers
+    iter1, iter2 = itertools.tee(iterator)
+    return math.fsum(iter1)/count(iter2)
 
 def dec2hex(i):
     return __builtins__.hex(int(i))[2:]
@@ -196,8 +204,10 @@ functions={
     'all':       (all,        float,  'mto1'),
     'any':       (any,        float,  'mto1'),
     'count':     (count,      str,    'mto1'),
+    'head':      (head,       str,    'mtom'),
     'uniq':      (uniq,       str,    'mtom'),
     'uniq_c':    (uniq_c,     str,    'mtom'),
+    'uniq_d':    (uniq_d,     str,    'mtom'),
     #Following really of minimal use
     #'dec2hex':   (dec2hex,    str,   '1to1'),
     #'hex2dec':   (hex2dec,    str,   '1to1'),
