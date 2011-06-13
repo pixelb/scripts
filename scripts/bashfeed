@@ -56,7 +56,7 @@ suggested_update_freq=1440 #mins
 #files starting with . | files without a . | files ending in .c .cpp ...
 include_re='(^|/)[.].+|(^|/)[^.]+$|[.](c|cpp|py|sh|rc|tips|fortune|html)$' #only show these files
 
-exclude_re='(\.git/|priv/|tmp/|.htaccess|xvpics|timeline\.html|modified\.html|head\.html|header\.html|footer\.html|adds\.html|last\.html|fslint/(NEWS\.html|md5sum))' #don't show these paths
+exclude_re='(\.git/|priv/|tmp/|.htaccess|xvpics|timeline\.html|modified\.html|head\.html|header\.html|footer\.html|footer-home\.html|adds\.html|last\.html|fslint/(NEWS\.html|md5sum))' #don't show these paths
 
 default_files="index.html index.shtml index.php"
 
