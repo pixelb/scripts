@@ -163,9 +163,18 @@ if used_compiled:
     max=__builtins__.max
 
 def avg(iterator):
-    # Note math.fsum doesn't lose precision while adding lots of small numbers
-    iter1, iter2 = itertools.tee(iterator)
-    return math.fsum(iter1)/count(iter2)
+    try:
+        # Note math.fsum (available since 2.6) doesn't lose precision
+        # while adding lots of small numbers
+        iter1, iter2 = itertools.tee(iterator)
+        return math.fsum(iter1)/count(iter2)
+    except:
+        total=0
+        lenth=0
+        for i in iterator:
+            total+=i
+            length+=1
+            return total/length
 
 def dec2hex(i):
     return __builtins__.hex(int(i))[2:]
