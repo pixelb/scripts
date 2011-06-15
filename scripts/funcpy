@@ -15,7 +15,7 @@
 # Changes:
 #    V1.0, 01 Nov 2006, Initial release
 #    V1.1, 30 Nov 2007, Added 'uniq' (example of many to many)
-#    V1.3, 13 Jun 2011, Added 'count','head','uniq_c' & 'uniq_d' (from @raymondh)
+#    V1.4, 15 Jun 2011, Added 'count','head','uniq_c' & 'uniq_d' (from @raymondh)
 
 # Examples:
 #
@@ -119,7 +119,7 @@ if used_compiled:
     add=__builtins__.sum #should be slightly more specific (faster)
 
 def head(iterator, n=10):
-    return (x for x,i in zip(iterator, range(n)))
+    return (x for x,i in izip(iterator, xrange(n)))
     # Note the following more general inspector
     # return itertools.islice(iterator,n)
 
