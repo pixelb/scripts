@@ -15,7 +15,7 @@
 # Changes:
 #    V1.0, 01 Nov 2006, Initial release
 #    V1.1, 30 Nov 2007, Added 'uniq' (example of many to many)
-#    V1.4, 15 Jun 2011, Added 'count','head','uniq_c' & 'uniq_d' (from @raymondh)
+#    V1.5, 17 Jun 2011, Added 'count','head','uniq_c' & 'uniq_d' (from @raymondh)
 
 # Examples:
 #
@@ -52,6 +52,7 @@
 import itertools
 import operator
 import math
+import sys
 
 used_compiled=True #Turn off for comparison
 
@@ -69,12 +70,12 @@ def reduce(func, items, start=None): #foldl
     try:
         items=iter(items)
     except:
-        raise TypeError, "reduce() arg 2 must support iteration"
+        raise TypeError("reduce() arg 2 must support iteration")
     if start==None:
         try:
             state=items.next()
         except StopIteration:
-            raise TypeError, "reduce() of empty sequence with no initial value"
+            raise TypeError("reduce() of empty sequence with no initial value")
     else:
         state=start
     for i in items:
@@ -91,13 +92,25 @@ def imap(func, iter):
     for i in iter:
         yield func(i)
 if used_compiled:
-    imap=itertools.imap
+    if sys.version_info[0] < 3:
+        imap=itertools.imap
+    else:
+        imap=map
 
 def izip(iter1, iter2):
     for i in iter1:
         yield (i, iter2.next()) #exception raised if either exhausted as required
 if used_compiled:
-    izip=itertools.izip
+    if sys.version_info[0] < 3:
+        izip=itertools.izip
+    else:
+        izip=zip
+
+def irange(start,stop):
+    if sys.version_info[0] < 3:
+        return xrange(start,stop)
+    else:
+        return range(start,stop)
 
 def all(iter): #every?
     return False not in imap(bool,iter)
@@ -111,7 +124,7 @@ if used_compiled:
         pass
 
 def factorial(x):
-    return reduce(operator.mul, xrange(1,int(x)+1))
+    return reduce(operator.mul, range(1,int(x)+1))
 
 def add(iter):
     return reduce(operator.add, iter)
@@ -119,7 +132,7 @@ if used_compiled:
     add=__builtins__.sum #should be slightly more specific (faster)
 
 def head(iterator, n=10):
-    return (x for x,i in izip(iterator, xrange(n)))
+    return (x for x,i in izip(iterator, range(n)))
     # Note the following more general inspector
     # return itertools.islice(iterator,n)
 
@@ -183,14 +196,14 @@ def hex2dec(i):
     return int(i,16)
 
 def bits(i):
-    if i<0:  raise ValueError, "negative number [%d]" % i
+    if i<0:  raise ValueError("negative number [%d]" % i)
     if i==0: return 1
     #shift operator slower
     return int(math.log(i,2))+1
 
 #=============================================================
 
-import os, errno, sys
+import os, errno
 
 # The following exits cleanly on Ctrl-C or EPIPE
 # while treating other exceptions as before.
@@ -255,9 +268,9 @@ try:
             for mod in opt[1].split(","):
                 globals()[mod]=__import__(mod)
 
-except getopt.error, msg:
-    print msg
-    print
+except getopt.error:
+    msg = sys.exc_info()[1]
+    sys.stdout.write("%s\n" % msg)
     Usage()
     sys.exit(2)
 
@@ -286,10 +299,10 @@ try:
         if type(result)==bool:
             sys.exit(not result)
         else:
-            print result
+            sys.stdout.write("%s\n" % result)
     elif ftype=='mtom': #many to many
         #for result in func(convert(sys.stdin)):
-        #    print result,
+        #    sys.stdout.write(result)
         #note the following is faster but it buffers output
         #even if stdout is a terminal. writelines really shouldn't do that.
         sys.stdout.writelines(func(convert(sys.stdin)))
@@ -297,8 +310,8 @@ try:
         for num in convert(sys.stdin):
             result = func(num)
             if result!=None:
-                print result
-    sys.stdout.close()
-except ValueError, value:
+                sys.stdout.write("%s\n" % result)
+except ValueError:
+    value = sys.exc_info()[1]
     sys.stderr.write(str(value)+"\n")
     sys.exit(1)
