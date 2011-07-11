@@ -92,7 +92,7 @@ def imap(func, iter):
     for i in iter:
         yield func(i)
 if used_compiled:
-    if sys.version_info[0] < 3:
+    if sys.version_info < (3,):
         imap=itertools.imap
     else:
         imap=map
@@ -101,7 +101,7 @@ def izip(iter1, iter2):
     for i in iter1:
         yield (i, iter2.next()) #exception raised if either exhausted as required
 if used_compiled:
-    if sys.version_info[0] < 3:
+    if sys.version_info < (3,):
         izip=itertools.izip
     else:
         izip=zip
@@ -123,7 +123,7 @@ def irange(*args):
         yield start
         start += step
 if used_compiled:
-    if sys.version_info[0] < 3:
+    if sys.version_info < (3,):
         irange=xrange
     else:
         irange=range
