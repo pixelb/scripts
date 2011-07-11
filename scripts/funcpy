@@ -15,7 +15,7 @@
 # Changes:
 #    V1.0, 01 Nov 2006, Initial release
 #    V1.1, 30 Nov 2007, Added 'uniq' (example of many to many)
-#    V1.5, 17 Jun 2011, Added 'count','head','uniq_c' & 'uniq_d' (from @raymondh)
+#    V1.6, 11 Jul 2011, http://github.com/pixelb/scripts/commits/master/scripts/funcpy
 
 # Examples:
 #
@@ -106,11 +106,27 @@ if used_compiled:
     else:
         izip=zip
 
-def irange(start,stop):
-    if sys.version_info[0] < 3:
-        return xrange(start,stop)
+def irange(*args):
+    start=0
+    step=1
+    if len(args) == 0:
+        raise TypeError("irange expected at least 1 argument, got 0")
+    elif len(args) == 1:
+        (stop,) = args
+    elif len(args) == 2:
+        (start,stop) = args
+    elif len(args) == 3:
+        (start,stop,step) = args
     else:
-        return range(start,stop)
+        raise TypeError("irange expected at most 3 arguments, got %d" % len(args))
+    while start < stop:
+        yield start
+        start += step
+if used_compiled:
+    if sys.version_info[0] < 3:
+        irange=xrange
+    else:
+        irange=range
 
 def all(iter): #every?
     return False not in imap(bool,iter)
@@ -124,7 +140,7 @@ if used_compiled:
         pass
 
 def factorial(x):
-    return reduce(operator.mul, range(1,int(x)+1))
+    return reduce(operator.mul, irange(1,int(x)+1))
 
 def add(iter):
     return reduce(operator.add, iter)
@@ -132,7 +148,7 @@ if used_compiled:
     add=__builtins__.sum #should be slightly more specific (faster)
 
 def head(iterator, n=10):
-    return (x for x,i in izip(iterator, range(n)))
+    return (x for x,i in izip(iterator, irange(n)))
     # Note the following more general inspector
     # return itertools.islice(iterator,n)
 
