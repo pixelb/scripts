@@ -31,11 +31,11 @@
 #                         Handle codes with combined attributes and color.
 #                         Handle isolated <bold> attributes with css.
 #                         Strip more terminal control codes.
-#    V0.11, 06 May 2011
+#    V0.12, 12 Jul 2011
 #      http://github.com/pixelb/scripts/commits/master/scripts/ansi2html.sh
 
 if [ "$1" = "--version" ]; then
-    echo "0.11" && exit
+    echo "0.12" && exit
 fi
 
 if [ "$1" = "--help" ]; then
@@ -137,7 +137,7 @@ done
 
 echo -n '
 .f9 { color: '`[ "$dark_bg" ] && echo "#$P7;" || echo "#$P0;"`' }
-.b9 { background-color: #'`[ "$dark_bg" ] && echo $P0 || echo $P7`'; }
+.b9 { background-color: #'`[ "$dark_bg" ] && echo $P0 || echo $P15`'; }
 .f9 > .bold,.bold > .f9, body.f9 > pre > .bold {
   /* Bold is heavy black on white, or bright white
      depending on the default background */
