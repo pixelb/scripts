@@ -9,25 +9,26 @@
 #    This plugin requires that xchat-python is installed
 # Changes:
 #    V1.0, 02 Dec 2005, Initial release
-#    V2.0, 04 Nov 2009
+#    V2.1, 14 Aug 2011,
 #      http://github.com/pixelb/scripts/commits/master/scripts/xchat_warn.py
 
 
 __module_name__ = "xchat_warn"
-__module_version__ = "2.0"
+__module_version__ = "2.1"
 __module_description__ = "Warn when someone is referencing you directly"
 
 import time
 import os
 import re
 import xchat
+import pipes
 lastAlert=0
 
 def Alert(message):
-    message=message.replace("'","`") #make safe for shell
+    arg = pipes.quote("--text=xchat: %s" % message) #make safe for shell
     #Other options to display message are gdialog, gxmessage
-    os.system("xmessage -nearmouse -default okay '%s' &" % message)
-#    os.system("zenity --info --title='xchat' --text='%s' &" % message)
+    os.system("zenity --timeout=1 --notification %s &" % arg)
+#    os.system("xmessage -nearmouse -default okay %s &" % arg)
 #    os.system("play /usr/share/sounds/gtk-events/clicked.wav")
 
 def CheckAlert(to,message):
