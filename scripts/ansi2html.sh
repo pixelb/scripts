@@ -46,6 +46,21 @@ if [ "$1" = "--help" ]; then
     exit
 fi
 
+sed --version >/dev/null 2>&1
+# if it works, assume we have GNU sed
+
+if [ "$?" = 1 ]; then
+  # Mac OSX's sed gets this
+  # use e.g. homebrew 'gnu-sed' to get it as:
+  which gsed >/dev/null 2>&1 
+  if [ "$?" = 0 ]; then
+    alias sed=gsed
+  else
+    echo "Error, can't find an acceptable GNU sed."
+    exit
+  fi
+fi
+
 [ "$1" = "--bg=dark" ] && { dark_bg=yes; shift; }
 
 if [ "$1" = "--palette=solarized" ]; then
@@ -85,7 +100,7 @@ fi
 
 [ "$1" = "--bg=dark" ] && { dark_bg=yes; shift; }
 
-echo -n "<html>
+echo "<html>
 <head>
 <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/>
 <style type=\"text/css\">
@@ -157,11 +172,10 @@ echo -n '
 </head>
 
 <body class="f9 b9">
-<pre>
-'
+<pre>'
 
 p='\x1b\['        #shortcut to match escape codes
-P="\(^[^°]*\)¡$p" #expression to match prepended codes below
+P="\(^[^¬∞]*\)¬°$p" #expression to match prepended codes below
 
 # Handle various xterm control sequences.
 # See /usr/share/doc/xterm-*/ctlseqs.txt
@@ -194,8 +208,8 @@ s#\&#\&amp;#g; s#>#\&gt;#g; s#<#\&lt;#g; s#\"#\&quot;#g
 # split 256 colors out and mark so that they're not
 # recognised by the following 'split combined' line
 :e
-s#${p}\([0-9;]\{1,\}\);\([34]8;5;[0-9]\{1,3\}\)m#${p}\1m${p}¬\2m#g; t e
-s#${p}\([34]8;5;[0-9]\{1,3\}\)m#${p}¬\1m#g;
+s#${p}\([0-9;]\{1,\}\);\([34]8;5;[0-9]\{1,3\}\)m#${p}\1m${p}¬¨\2m#g; t e
+s#${p}\([34]8;5;[0-9]\{1,3\}\)m#${p}¬¨\1m#g;
 
 :c
 s#${p}\([0-9]\{1,\}\);\([0-9;]\{1,\}\)m#${p}\1m${p}\2m#g; t c   # split combined
@@ -204,7 +218,7 @@ s#${p}1m\(\(${p}[4579]m\)*\)#\1${p}1m#g                   #bold last (with clr)
 s#${p}m#${p}0m#g                                          #add leading 0 to norm
 
 # undo any 256 color marking
-s#${p}¬\([34]8;5;[0-9]\{1,3\}\)m#${p}\1m#g;
+s#${p}¬¨\([34]8;5;[0-9]\{1,3\}\)m#${p}\1m#g;
 
 # map 16 color codes to color + bold
 s#${p}9\([0-7]\)m#${p}3\1m${p}1m#g;
@@ -213,8 +227,8 @@ s#${p}10\([0-7]\)m#${p}4\1m${p}1m#g;
 # change 'reset' code to a single char, and prepend a single char to
 # other codes so that we can easily do negative matching, as sed
 # does not support look behind expressions etc.
-s#°#\&deg;#g; s#${p}0m#°#g
-s#¡#\&iexcl;#g; s#${p}[0-9;]*m#¡&#g
+s#¬∞#\&deg;#g; s#${p}0m#¬∞#g
+s#¬°#\&iexcl;#g; s#${p}[0-9;]*m#¬°&#g
 " |
 
 # Convert SGR sequences to HTML
@@ -222,11 +236,11 @@ sed "
 :ansi_to_span # replace ANSI codes with CSS classes
 t ansi_to_span # hack so t commands below only apply to preceeding s cmd
 
-/^[^¡]*°/ { b span_end } # replace 'reset code' if no preceeding code
+/^[^¬°]*¬∞/ { b span_end } # replace 'reset code' if no preceeding code
 
 # common combinations to minimise html (optional)
-s#${P}3\([0-7]\)m¡${p}4\([0-7]\)m#\1<span class=\"f\2 b\3\">#;t span_count
-s#${P}4\([0-7]\)m¡${p}3\([0-7]\)m#\1<span class=\"f\3 b\2\">#;t span_count
+s#${P}3\([0-7]\)m¬°${p}4\([0-7]\)m#\1<span class=\"f\2 b\3\">#;t span_count
+s#${P}4\([0-7]\)m¬°${p}3\([0-7]\)m#\1<span class=\"f\3 b\2\">#;t span_count
 
 s#${P}1m#\1<span class=\"bold\">#;                            t span_count
 s#${P}4m#\1<span class=\"underline\">#;                       t span_count
@@ -254,11 +268,11 @@ x
 /^s/ {
   s/^.//
   x
-  s#°#</span>°#
+  s#¬∞#</span>¬∞#
   b span_end
 }
 x
-s#°##
+s#¬∞##
 b ansi_to_span
 " |
 
@@ -268,18 +282,18 @@ b ansi_to_span
 # avoid conversions of stuff between &...; or <...>
 #
 # Note we could use sed to do this based around:
-#   sed 'y/abcdefghijklmnopqrstuvwxyz{}`~/▒␉␌␍␊°±␤␋┘┐┌└┼⎺⎻─⎼⎽├┤┴┬│≤≥π£◆·/'
+#   sed 'y/abcdefghijklmnopqrstuvwxyz{}`~/‚ñí‚êâ‚êå‚êç‚êä¬∞¬±‚ê§‚êã‚îò‚îê‚îå‚îî‚îº‚é∫‚éª‚îÄ‚éº‚éΩ‚îú‚î§‚î¥‚î¨‚îÇ‚â§‚â•œÄ¬£‚óÜ¬∑/'
 # However that would be very awkward as we need to only conv some input.
 # The basic scheme that we do in the python script below is:
-#  1. enable transliterate once ¡ char seen
-#  2. disable once µ char seen (may be on diff line to ¡)
+#  1. enable transliterate once ¬° char seen
+#  2. disable once ¬µ char seen (may be on diff line to ¬°)
 #  3. never transliterate between &; or <> chars
 sed "
 # change 'smacs' and 'rmacs' to a single char so that we can easily do
 # negative matching, as sed does not support look behind expressions etc.
-# Note we don't use ° like above as that's part of the alternate charset.
-s#\x1b(0#¡#g;
-s#µ#\&micro;#g; s#\x1b(B#µ#g
+# Note we don't use ¬∞ like above as that's part of the alternate charset.
+s#\x1b(0#¬°#g;
+s#¬µ#\&micro;#g; s#\x1b(B#¬µ#g
 " |
 (
 python -c "
@@ -290,7 +304,7 @@ import locale
 encoding=locale.getpreferredencoding()
 
 old='abcdefghijklmnopqrstuvwxyz{}\`~'
-new='▒␉␌␍␊°±␤␋┘┐┌└┼⎺⎻─⎼⎽├┤┴┬│≤≥π£◆·'
+new='‚ñí‚êâ‚êå‚êç‚êä¬∞¬±‚ê§‚êã‚îò‚îê‚îå‚îî‚îº‚é∫‚éª‚îÄ‚éº‚éΩ‚îú‚î§‚î¥‚î¨‚îÇ‚â§‚â•œÄ¬£‚óÜ¬∑'
 new=unicode(new, 'utf-8')
 table=range(128)
 for o,n in zip(old, new): table[ord(o)]=n
@@ -311,11 +325,11 @@ for c in unicode(sys.stdin.read(), encoding):
       state = HTML_TAG
     elif c == '&':
       state = HTML_ENTITY
-    elif c == u'¡' and state == STANDARD:
+    elif c == u'¬°' and state == STANDARD:
       state = ALTERNATIVE
       last_mode = ALTERNATIVE
       continue
-    elif c == u'µ' and state == ALTERNATIVE:
+    elif c == u'¬µ' and state == ALTERNATIVE:
       state = STANDARD
       last_mode = STANDARD
       continue
@@ -323,7 +337,7 @@ for c in unicode(sys.stdin.read(), encoding):
       c = c.translate(table)
   sys.stdout.write(c.encode(encoding))
 " 2>/dev/null ||
-sed 's/[¡µ]//g' # just strip aternative flag chars
+sed 's/[¬°¬µ]//g' # just strip aternative flag chars
 )
 
 echo "</pre>
