@@ -121,7 +121,10 @@ read_cpu_data_linux() {
     while read name value; do
         unset IFS
         name=`echo $name` #strip spaces
-        value=`echo $value | sed 's/\([^ ]*\).*/\1/'` #take first word
+        value=`echo $value` #strip spaces
+        if [ "$name" = "vendor_id" ]; then
+            value=`echo $value | sed 's/\([^ ]*\).*/\1/'` #take first word
+        fi
         IFS=":"
         if [ "$name" = "vendor_id" ]; then
             vendor_id="$value"
