@@ -60,7 +60,7 @@
 #     http://github.com/pixelb/scripts/commits/master/scripts/gcccpuopt
 
 if [ "$1" = "--version" ]; then
-    echo "0.99.7" && exit
+    echo "0.99.8" && exit
 fi
 
 # This table shows when -march options were introduced into _official_ gcc releases.
