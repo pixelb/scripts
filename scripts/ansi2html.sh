@@ -31,18 +31,19 @@
 #                         Handle codes with combined attributes and color.
 #                         Handle isolated <bold> attributes with css.
 #                         Strip more terminal control codes.
-#    V0.12, 12 Jul 2011
+#    V0.13, 05 Mar 2012
 #      http://github.com/pixelb/scripts/commits/master/scripts/ansi2html.sh
 
 if [ "$1" = "--version" ]; then
-    echo "0.12" && exit
+    printf '0.13\n' && exit
 fi
 
 if [ "$1" = "--help" ]; then
-    echo "This utility converts ANSI codes in data passed to stdin" >&2
-    echo "It has 2 optional parameters:" >&2
-    echo "   --bg=dark --palette=linux|solarized|tango|xterm" >&2
-    echo "E.g.: ls -l --color=always | ansi2html.sh --bg=dark > ls.html" >&2
+    printf '%s\n' \
+'This utility converts ANSI codes in data passed to stdin
+It has 2 optional parameters:
+   --bg=dark --palette=linux|solarized|tango|xterm
+E.g.: ls -l --color=always | ansi2html.sh --bg=dark > ls.html' >&2
     exit
 fi
 
@@ -85,7 +86,7 @@ fi
 
 [ "$1" = "--bg=dark" ] && { dark_bg=yes; shift; }
 
-echo -n "<html>
+printf '%s' "<html>
 <head>
 <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/>
 <style type=\"text/css\">
@@ -135,14 +136,14 @@ for gray in $(seq 0 23); do
   printf ".eb%d { background-color: #%2.2x%2.2x%2.2x; }\n" $c $l $l $l
 done
 
-echo -n '
-.f9 { color: '`[ "$dark_bg" ] && echo "#$P7;" || echo "#$P0;"`' }
-.b9 { background-color: #'`[ "$dark_bg" ] && echo $P0 || echo $P15`'; }
+printf '%s' '
+.f9 { color: '`[ "$dark_bg" ] && printf "#$P7;" || printf "#$P0;"`' }
+.b9 { background-color: #'`[ "$dark_bg" ] && printf $P0 || printf $P15`'; }
 .f9 > .bold,.bold > .f9, body.f9 > pre > .bold {
   /* Bold is heavy black on white, or bright white
      depending on the default background */
-  color: '`[ "$dark_bg" ] && echo "#$P15;" || echo "#$P0;"`'
-  font-weight: '`[ "$dark_bg" ] && echo 'normal;' || echo 'bold;'`'
+  color: '`[ "$dark_bg" ] && printf "#$P15;" || printf "#$P0;"`'
+  font-weight: '`[ "$dark_bg" ] && printf 'normal;' || printf 'bold;'`'
 }
 .reverse {
   /* CSS doesnt support swapping fg and bg colours unfortunately,
@@ -326,6 +327,6 @@ for c in unicode(sys.stdin.read(), encoding):
 sed 's/[¡µ]//g' # just strip aternative flag chars
 )
 
-echo "</pre>
+printf '</pre>
 </body>
-</html>"
+</html>\n'
