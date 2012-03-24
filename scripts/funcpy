@@ -5,6 +5,8 @@
 # the latter being similar to perl -n -e 'expression'.
 # Update June 9 2009, I noticed a similar script called pyline:
 #   http://code.activestate.com/recipes/437932/
+# Update March 23 2012, Another similar tool called pyp
+#   http://code.google.com/p/pyp/
 
 # Author:
 #    http://www.pixelbeat.org/
