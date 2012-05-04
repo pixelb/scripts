@@ -288,6 +288,8 @@ elif [ "$vendor_id" = "GenuineIntel" ]; then
         elif [ $cpu_model -eq 42 ] || #Sandy Bridge
              [ $cpu_model -eq 45 ]; then #Sandy Bridge E
             line="corei7-avx corei7 core2 pentium-m pentium4 pentium3 pentium2 pentiumpro pentium-mmx pentium i486 i386"
+        elif [ $cpu_model -eq 58 ]; then #Ivy Bridge
+            line="corei7-avx corei7 core2 pentium-m pentium4 pentium3 pentium2 pentiumpro pentium-mmx pentium i486 i386"
         elif [ $cpu_model -eq 15 ] ||
              # ^ Merom ^
              [ $cpu_model -eq 22 ] ||
