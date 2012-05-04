@@ -220,7 +220,8 @@ if [ "$vendor_id" = "AuthenticAMD" ]; then
     elif [ $cpu_family -eq 15 ]; then #k8,opteron,athlon64,athlon-fx
         line="k8 athlon-4 athlon k6-3 k6-2 k6"
     elif [ $cpu_family -eq 16 ] ||    #barcelona,amdfam10
-         [ $cpu_family -eq 17 ]; then #griffin
+         [ $cpu_family -eq 17 ] ||    #griffin
+         [ $cpu_family -eq 18 ]; then #llano
         line="amdfam10 k8 athlon-4 athlon k6-3 k6-2 k6"
     elif [ $cpu_family -eq 20 ]; then #bobcat
         line="btver1 amdfam10 k8 athlon-4 athlon k6-3 k6-2 k6"
