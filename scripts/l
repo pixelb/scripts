@@ -139,7 +139,7 @@ echo "$*" | grep -E -- "-(i|x|s|C|-version|-help)" >/dev/null && lfmt=""
 
 # Start with the standard long format listing
 # with colours, and latest files at bottom
-$ls -lrt $color_opt$color_when $ng $gdf "$@" |
+$ls -lrtq $color_opt$color_when $ng $gdf "$@" |
 
 # process with sed to...
 sed "
