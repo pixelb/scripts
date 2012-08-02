@@ -21,6 +21,7 @@ FILE=$1
 PART=$2
 DEST=$3
 
-UNITS=`fdisk -lu $FILE 2>/dev/null | grep $FILE$PART | tr -d '*' | tr -s ' ' | cut -f2 -d' '`
+UNITS=$(fdisk -lu $FILE 2>/dev/null | grep "$FILE$PART " |
+        tr -d '*' | awk '{print $2}')
 OFFSET=`expr 512 '*' $UNITS`
 mount -o loop,offset=$OFFSET $FILE $DEST
