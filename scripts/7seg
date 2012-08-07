@@ -40,7 +40,7 @@
 #  clear; for i in `seq 0 9`; do ./7seg $i; sleep 1; clear; done
 
 case $1 in
-  [0-9]) break;;
+  [0-9]) ;;
   *) echo "Usage is $0 num, where num is 0 to 9" >&2; exit 1;;
 esac
 
