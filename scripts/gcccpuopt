@@ -76,6 +76,7 @@ fi
 #   gcc-4.5   += atom
 #   gcc-4.6   += corei7, corei7-avx, bdver1, btver1
 #   gcc-4.7   += core-avx-i, core-avx2, bdver2
+#   gcc-4.8   += btver2
 
 [ -z "$CC" ] && CC=gcc
 
@@ -232,6 +233,8 @@ if [ "$vendor_id" = "AuthenticAMD" ]; then
         else
             line="bdver1 btver1 amdfam10 k8 athlon-4 athlon k6-3 k6-2 k6"
         fi
+    elif [ $cpu_family -eq 22 ]; then #jaguar
+        line="btver2 btver1 amdfam10 k8 athlon-4 athlon k6-3 k6-2 k6"
     fi
 elif [ "$vendor_id" = "CentaurHauls" ]; then
     if [ $cpu_family -eq 5 ]; then
