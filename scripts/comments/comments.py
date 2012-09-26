@@ -150,13 +150,13 @@ function validateOnSubmit() {
   <tr><td> Website: </td> <td><input type="text" name="url" size="50"> </td></tr>
   <tr><td style="vertical-align:top;"> comments: <br/>(no HTML) </td> <td><textarea name="content" rows="10" cols="63"></textarea></td></tr>
   <tr><td> 31+&#x37; </td> <td> <input type="text" name="scheck" id="scheck" size="50"> </td></tr>
-  <table>
+  </table>
   <input type="submit" value="Post">
 </form>
 </div>
 """)
 
-    self.response.out.write('\n</html>\n</body>')
+    self.response.out.write('\n</body>\n</html>')
 
   def post(self):
     comment = Comment(page = self.request.path) #use path_qs for dynamic sites
