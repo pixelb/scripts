@@ -90,9 +90,9 @@ a:hover {
    they don't click the checkbox then comment lost */
 function validateOnSubmit() {
 
-    var spammer = document.commentform.remmaps.checked;
-    if (spammer==1) {
-      alert("You must uncheck the checkbox");
+    var scheck = document.commentform.scheck.value;
+    if (scheck != "3\x38") {
+      alert("incorrect answer");
       return false;
     }
 
@@ -146,10 +146,10 @@ function validateOnSubmit() {
 <div style="margin-top: 1.5em;">
 <form id="commentform" name="commentform" action="" method="post" onsubmit="return validateOnSubmit();">
   <table>
-  <tr><td> Name: </td> <td><input type="text" name="author" size="30"> </td></tr>
-  <tr><td> Website: </td> <td><input type="text" name="url" size="60"> </td></tr>
-  <tr><td> Spammer? </td> <td> <input type="checkbox" id="remmaps" name="remmaps" value="1" checked> </td></tr>
-  <tr><td style="vertical-align:top;"> comments: <br/>(no HTML) </td> <td><textarea name="content" rows="10" cols="60"></textarea></td></tr>
+  <tr><td> Name: </td> <td><input type="text" name="author" size="50"> </td></tr>
+  <tr><td> Website: </td> <td><input type="text" name="url" size="50"> </td></tr>
+  <tr><td style="vertical-align:top;"> comments: <br/>(no HTML) </td> <td><textarea name="content" rows="10" cols="63"></textarea></td></tr>
+  <tr><td> 31+&#x37; </td> <td> <input type="text" name="scheck" id="scheck" size="50"> </td></tr>
   <table>
   <input type="submit" value="Post">
 </form>
@@ -165,7 +165,7 @@ function validateOnSubmit() {
     #if users.get_current_user():
     #  comment.user = users.get_current_user()
 
-    if self.request.get('remmaps'):
+    if self.request.get('scheck') != '38':
       self.redirect('#commentform')
       return
 
