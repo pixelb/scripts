@@ -3,7 +3,7 @@
 # Generate an RSS 2.0 feed directly from your existing web site
 
 # Author    - Pádraig Brady <P@draigBrady.com>
-# Licence   - GPL V2
+# Licence   - LGPLV2
 # Releases  -
 #   1.0     - Jun 19 2006 - Initial release
 #   1.1     - Jun 26 2006 - Exclude files with "Exclude from bashfeed"

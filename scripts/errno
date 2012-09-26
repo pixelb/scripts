@@ -3,6 +3,8 @@
 # Display ENAME corresponding to number
 # or all ENAMEs if no number specified.
 
+# License: LGPLv2
+
 [ $# -eq 1 ] && re="$1([^0-9]|$)"
 echo "#include <errno.h>" |
 cpp -dD -CC | #-CC available since GCC 3.3 (2003)

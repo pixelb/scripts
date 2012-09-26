@@ -2,6 +2,7 @@
 
 # takes a list of numbers (line seperated) and prints the total
 
+# License: LGPLv2
 # Note the input to this will probably come from `cut`,
 # so a couple of tips on cut:
 #   1. columns from `ls -l` are delimited by a variable

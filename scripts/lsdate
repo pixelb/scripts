@@ -2,6 +2,8 @@
 
 # print date for a file as ls would
 
+# License: LGPLv2
+
 if [ $# -eq 1 ]; then
     ts=`date --reference=$1 +%s` || exit 1
 else

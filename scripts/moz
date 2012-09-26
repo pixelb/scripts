@@ -2,6 +2,8 @@
 
 # Open a file with firefox
 
+# License: LGPLv2
+
 # firefox 2 now supports this so this script it now redundant.
 
 if echo "$1" | grep -Eq "^/"; then

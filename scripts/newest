@@ -3,6 +3,7 @@
 # List the newest files in the specified paths and by default any subdirectories
 # If no paths are specified, the current directory is listed.
 
+# License: LGPLv2
 # Author:
 #    http://www.pixelbeat.org/
 # Notes:

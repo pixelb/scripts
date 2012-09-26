@@ -3,6 +3,8 @@
 # Open command prompt in a single selected directory
 # or otherwise in current dir
 
+# License: LGPLv2
+
 # Put this (executable) file in ~/.gnome2/nautilus-scripts/
 # Then right click a directory or anywhere in current dir window
 # to get the scripts->command_prompt_here menu option

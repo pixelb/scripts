@@ -3,6 +3,7 @@
 # bc integer functions I've found useful
 # while systems programming in the unix environment.
 
+# License: LGPLv2
 # Author:
 #    http://www.pixelbeat.org/
 # Notes:

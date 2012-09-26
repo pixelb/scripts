@@ -2,6 +2,8 @@
 
 # Download URLs from file (called queue) with history.
 
+# License: LGPLv2
+
 # I schedule this to run every night.
 # The file called queue must be in the same dir
 # as this script and lines starting with # are ignored.

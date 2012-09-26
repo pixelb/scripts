@@ -4,6 +4,7 @@
 # Both access and modification times are maintained,
 # or optionally those timestamps are set to a specific epoch.
 
+# License: LGPLv2
 # Author:
 #    http://www.pixelbeat.org/
 # Notes:

@@ -3,6 +3,8 @@
 # Demonstrate reading passwords in a shell script
 # while not echoing those passwords to the screen.
 
+# License: LGPLv2
+
 # Note `read -s` in bash 3 at least does not echo
 # the return/newline either? Therefore we need to
 # `echo >&2` after each read to simulate that.

@@ -2,6 +2,8 @@
 
 # Shows the date for "fri week" or "mon last" for e.g.
 
+# License: LGPLv2
+
 Usage () {
     echo "Usage: `basename $0` mon|tue|... [next]|week|last" >&2
     exit 1

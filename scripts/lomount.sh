@@ -2,6 +2,7 @@
 
 # Mount partitions within a disk image file
 
+# License: LGPLv2
 # Author: P@adraigBrady.com
 
 # V1.0      29 Jun 2005     Initial release

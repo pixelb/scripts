@@ -2,6 +2,8 @@
 
 # print octal mode for a file
 
+# License: LGPLv2
+
 if [ $# -ne 1 ]; then
     echo "Usage: `basename $0` path" >&2
     exit 1

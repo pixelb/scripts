@@ -3,6 +3,8 @@
 # Set modification date of the current (or specified) directory
 # to the earliest file in that directory.
 #
+# License: LGPLv2
+#
 # I use this when I don't want to record when I (re)filed something,
 # and would like the directories to be ordered by date of the contents.
 # Digital camera pictures is usually what I use this for.

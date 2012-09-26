@@ -2,6 +2,7 @@
 
 # Display available ANSI (terminal) colour combinations
 
+# License: LGPLv2
 # Author:
 #    http://www.pixelbeat.org/docs/terminal_colours/
 # Changes:

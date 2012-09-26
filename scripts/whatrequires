@@ -4,6 +4,7 @@
 # I.E. it displays what packages break if you remove the specified packages.
 # In other words what packages should you remove in addition to those specified.
 
+# Licence: LGPLv2
 # Author:
 #    http://www.pixelbeat.org/
 # Notes:

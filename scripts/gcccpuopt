@@ -2,6 +2,7 @@
 
 # Print the gcc cpu specific options tailored for the current CPU
 
+# License: LGPLv2
 # Author:
 #    http://www.pixelbeat.org/
 # Notes:

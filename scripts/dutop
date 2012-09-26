@@ -4,6 +4,7 @@
 # while automatically recursing down directories if
 # there is one obvious directory using the space.
 
+# License: LGPLv2
 # Author: P@draigBrady.com
 
 #Design decisions:

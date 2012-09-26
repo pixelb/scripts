@@ -3,6 +3,7 @@
 # find a string in the current directory and below
 # while automatically ignoring repository metadata.
 
+# Licence: LGPLv2
 # Author:
 #    http://www.pixelbeat.org/
 # Notes:

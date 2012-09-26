@@ -3,6 +3,8 @@
 # change any uppercase letters in file and directory
 # names in the current directory and below.
 
+# License: LGPLv2
+
 # note filenames with \1 or \n will cause problems
 
 # note this is still much slower than it could be,

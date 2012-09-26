@@ -3,6 +3,8 @@
 # Display a list of country codes and
 # corresponding country name from locale database
 
+# License: LGPLv2
+
 locale -a |
 grep _ | #don't show nationalities
 uniq -w5 | #merge available charmaps

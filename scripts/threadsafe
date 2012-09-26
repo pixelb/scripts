@@ -1,6 +1,9 @@
 #!/bin/sh
 
 # print functions in C/C++ files that are not threadsafe
+
+# License: LGPLv2
+
 # Example usage:
 #     find -name "*.c" -o -name "*.cpp" | xargs threadsafe
 # If no files passed then the total list of functions

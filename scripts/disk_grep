@@ -2,6 +2,7 @@
 
 # search disk for a string and output commands to dump matching sections
 
+# License: LGPLv2
 # Author:
 #    http://www.pixelbeat.org/
 # Notes:

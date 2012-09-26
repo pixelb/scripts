@@ -3,6 +3,8 @@
 # A wrapper around units
 # as I can never remember how to call it.
 
+# License: LGPLv2
+
 if [ $# -ne 2 ]; then
     echo "Usage $0 from to" >&2
     echo "for e.g. $0 '2 grams' drams" >&2

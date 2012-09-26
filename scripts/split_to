@@ -3,6 +3,7 @@
 # split data from stdin to multiple invocations of a command
 # without creating temporary files
 
+# License: LGPLv2
 # Author:
 #    http://www.pixelbeat.org/
 # Notes:

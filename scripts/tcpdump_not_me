@@ -3,6 +3,7 @@
 # Show all network traffic except that for the current ssh connection
 # This allows running tcpdump remotely over ssh.
 
+# License: LGPLv2
 # Author:
 #    http://www.pixelbeat.org/
 # Notes:

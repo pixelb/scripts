@@ -2,6 +2,7 @@
 
 # An xchat plugin to warn when someone references you directly
 
+# License: LGPLv2
 # Author:
 #    http://www.pixelbeat.org/
 # Notes:

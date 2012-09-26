@@ -2,6 +2,7 @@
 
 # Convert ANSI (terminal) colours and attributes to HTML
 
+# Licence: LGPLv2
 # Author:
 #    http://www.pixelbeat.org/docs/terminal_colours/
 # Examples:

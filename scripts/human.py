@@ -2,6 +2,7 @@
 
 # Convert a number for human consumption
 
+# License: LGPLv2
 # Author:
 #    P@draigBrady.com
 # Changes:

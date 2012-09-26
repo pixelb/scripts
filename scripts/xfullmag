@@ -2,7 +2,9 @@
 #
 # I find this handy for demos where I can magnify as much of the origonal
 # screen as possible to the full screen size and specified magnification.
-#
+
+# License: LGPLv2
+
 # Note this only allows for the xmag menu on the fullscreen display.
 # So you should make xmag fullscreen, ie remove titlebar etc (shift+F11 in gnome).
 

@@ -4,6 +4,7 @@
 # This is a very simple alternative to ipython
 # whose default settings I don't like.
 
+# License: LGPLv2
 # Notes:
 #   You can run it directly, or call it like:
 #     PYTHONSTARTUP=~/path/to/inpy python

@@ -2,6 +2,8 @@
 # (re)quote input lines email using $QUOTE to appropriate level.
 # It's intended use is for cleaning up mails or reformatting comments etc.
 #
+# License: LGPLv2
+#
 # Note fmt has the --prefix option that does the appropriate thing
 # for C comments for e.g. so the main use of this script is for
 # badly formatted email.

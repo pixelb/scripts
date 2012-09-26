@@ -2,6 +2,8 @@
 
 # This script is a template for a self modifiying script
 
+# License: LGPLv2
+
 # Change the following to whatever
 # method updates your script, for e.g.
 #     svn update $0
