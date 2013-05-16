@@ -32,7 +32,7 @@
 #                         Handle codes with combined attributes and color.
 #                         Handle isolated <bold> attributes with css.
 #                         Strip more terminal control codes.
-#    V0.13, 05 Mar 2012
+#    V0.14, 16 May 2013
 #      http://github.com/pixelb/scripts/commits/master/scripts/ansi2html.sh
 
 if [ "$1" = "--version" ]; then
@@ -313,13 +313,15 @@ for c in unicode(sys.stdin.read(), encoding):
       state = HTML_TAG
     elif c == '&':
       state = HTML_ENTITY
-    elif c == u'¡' and state == STANDARD:
-      state = ALTERNATIVE
-      last_mode = ALTERNATIVE
+    elif c == u'¡':
+      if state == STANDARD:
+        state = ALTERNATIVE
+        last_mode = ALTERNATIVE
       continue
-    elif c == u'µ' and state == ALTERNATIVE:
-      state = STANDARD
-      last_mode = STANDARD
+    elif c == u'µ':
+      if state == ALTERNATIVE:
+        state = STANDARD
+        last_mode = STANDARD
       continue
     elif state == ALTERNATIVE:
       c = c.translate(table)
