@@ -189,7 +189,7 @@ s#[^\x08]\x08##g; t rm_bs
 # Normalize the input before transformation
 sed "
 # escape HTML
-s#\&#\&amp;#g; s#>#\&gt;#g; s#<#\&lt;#g; s#\"#\&quot;#g
+s#&#\&amp;#g; s#>#\&gt;#g; s#<#\&lt;#g; s#\"#\&quot;#g
 
 # normalize SGR codes a little
 
