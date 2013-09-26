@@ -36,7 +36,7 @@
 #      http://github.com/pixelb/scripts/commits/master/scripts/ansi2html.sh
 
 if [ "$1" = "--version" ]; then
-    printf '0.13\n' && exit
+    printf '0.14\n' && exit
 fi
 
 if [ "$1" = "--help" ]; then
