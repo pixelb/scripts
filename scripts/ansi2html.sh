@@ -32,11 +32,11 @@
 #                         Handle codes with combined attributes and color.
 #                         Handle isolated <bold> attributes with css.
 #                         Strip more terminal control codes.
-#    V0.14, 16 May 2013
+#    V0.15, 16 Oct 2013
 #      http://github.com/pixelb/scripts/commits/master/scripts/ansi2html.sh
 
 if [ "$1" = "--version" ]; then
-    printf '0.14\n' && exit
+    printf '0.15\n' && exit
 fi
 
 if [ "$1" = "--help" ]; then
@@ -86,6 +86,17 @@ else # linux console
 fi
 
 [ "$1" = "--bg=dark" ] && { dark_bg=yes; shift; }
+
+# Mac OSX's GNU sed is installed as gsed
+# use e.g. homebrew 'gnu-sed' to get it
+if ! sed --version >/dev/null 2>&1; then
+  if gsed --version >/dev/null 2>&1; then
+    alias sed=gsed
+  else
+    echo "Error, can't find an acceptable GNU sed." >&2
+    exit 1
+  fi
+fi
 
 printf '%s' "<html>
 <head>
