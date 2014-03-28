@@ -32,11 +32,11 @@
 #                         Handle codes with combined attributes and color.
 #                         Handle isolated <bold> attributes with css.
 #                         Strip more terminal control codes.
-#    V0.15, 16 Oct 2013
+#    V0.16, 28 Mar 2014
 #      http://github.com/pixelb/scripts/commits/master/scripts/ansi2html.sh
 
 if [ "$1" = "--version" ]; then
-    printf '0.15\n' && exit
+    printf '0.16\n' && exit
 fi
 
 if [ "$1" = "--help" ]; then
@@ -129,9 +129,9 @@ printf '%s' "<html>
 "
 
 # The default xterm 256 colour palette
-for red in $(seq 0 5); do
-  for green in $(seq 0 5); do
-    for blue in $(seq 0 5); do
+for red in 0 1 2 3 4 5 ; do
+  for green in 0 1 2 3 4 5 ; do
+    for blue in 0 1 2 3 4 5 ; do
         c=$((16 + ($red * 36) + ($green * 6) + $blue))
         r=$((($red * 40 + 55) * ($red > 0)))
         g=$((($green * 40 + 55) * ($green > 0)))
@@ -179,6 +179,8 @@ P="\(^[^°]*\)¡$p" #expression to match prepended codes below
 # Handle various xterm control sequences.
 # See /usr/share/doc/xterm-*/ctlseqs.txt
 sed "
+# escape ampersand
+s#&#\&amp;#g;
 s#\x1b[^\x1b]*\x1b\\\##g  # strip anything between \e and ST
 s#\x1b][0-9]*;[^\a]*\a##g # strip any OSC (xterm title etc.)
 
@@ -190,17 +192,27 @@ s#\r\$## # strip trailing \r
 s#[\x07]##g
 s#\x1b[]>=\][0-9;]*##g
 s#\x1bP+.\{5\}##g
+# Mark cursor positioning codes
+s:β:\&#946;:g
+s#${p}\([0-9]\{1,2\}\);\([0-9]\{1,2\}\)H#β\1;\2;#g
+
+# Mark clear screen and clear to end of line
+s:Ģ:\&#290;:g
+s:Ω:\&#8486;:g
+s#${p}K#Ģ#g
+s#${p}H#Ω#g
+
 s#${p}[0-9;?]*[^0-9;?m]##g
 
 #remove backspace chars and what they're backspacing over
 :rm_bs
-s#[^\x08]\x08##g; t rm_bs
+s#[^Ģ\x08]\x08Ģ\{0,1\}##g; t rm_bs
 " |
 
 # Normalize the input before transformation
 sed "
-# escape HTML
-s#&#\&amp;#g; s#>#\&gt;#g; s#<#\&lt;#g; s#\"#\&quot;#g
+# escape HTML (ampersand done above)
+s#>#\&gt;#g; s#<#\&lt;#g; s#\"#\&quot;#g
 
 # normalize SGR codes a little
 
@@ -283,7 +295,7 @@ b ansi_to_span
 # Note we could use sed to do this based around:
 #   sed 'y/abcdefghijklmnopqrstuvwxyz{}`~/▒␉␌␍␊°±␤␋┘┐┌└┼⎺⎻─⎼⎽├┤┴┬│≤≥π£◆·/'
 # However that would be very awkward as we need to only conv some input.
-# The basic scheme that we do in the python script below is:
+# The basic scheme that we do in the awk script below is:
 #  1. enable transliterate once ¡ char seen
 #  2. disable once µ char seen (may be on diff line to ¡)
 #  3. never transliterate between &; or <> chars
@@ -292,53 +304,167 @@ sed "
 # negative matching, as sed does not support look behind expressions etc.
 # Note we don't use ° like above as that's part of the alternate charset.
 s#\x1b(0#¡#g;
-s#µ#\&micro;#g; s#\x1b(B#µ#g
+s#\x0E#¡#g;
+
+s#µ#\&micro;#g;
+s#\x1b(B#µ#g
+s#\x0F#µ#g
 " |
 (
-python -c "
-# vim:fileencoding=utf8
+awk '
+function dump_screen(l,c,blanks,fix,ret) {
+   for(l=1;l<=maxY;l++) {
+      for(c=1;c<=maxX;c++) {
+         if((c SUBSEP l) in attr||length(cur)) {
+             ret = ret blanks fixas(cur,attr[c,l])
+             blanks=""
+         }
+         if((c SUBSEP l) in dump) {
+             ret=ret blanks dump[c,l]
+             blanks=""
+         } else blanks=blanks " "
 
-import sys
-import locale
-encoding=locale.getpreferredencoding()
+      }
+      if(length(cur)) ret=ret blanks
+      ret=ret "\n"
+      blanks=""
+   }
+   return ret
+}
+function atos(a,i,ret) {
+   for(i=1;i<=length(a);i++) ret=ret a[i]
+   return ret
+}
+function fixas(a,s,spc,i,j,attr,use,ret) {
+    spc=length(a)
+    for(i=1;i<=spc;i++) {
+       if(!j&&!index(s,a[i])) j=i;
+       if(j) {
+             ret= ret "</span>"
+             delete a[i]
+       }
+    }
+    if(j) spc=j-1
+    for(i=split(s,attr,">")-1;i>0;i--) {
+       attr[i]=attr[i]">"
+       for(use=j=1;s&&j<=spc;j++) if(attr[i]==a[j]) use=0;
+       if(use) ret=ret (a[++spc]=attr[i])
+    }
+    return ret
+}
+function encode(string,start,end,i,ret,pos,sc) {
+   if(!end) end=length(string);
+   if(!start) start=1;
+   state=3
+   for(i=1;i<=length(string);i++) {
+        c=substr(string,i,1)
+        if (state==2) {
+            sc=sc c
+            if(c==";") {
+               c=sc
+               state=last_mode
+            } else continue
+        } else {
+           if(c=="<") {
+		      # Change attributes - store current active
+			  # attributes in span array
+              split(substr(string,i),cord,">");
+              i+=length(cord[1])
+              if(cord[1] == "</span")
+                  delete span[spc--]
+              else span[++spc]=cord[1] ">"
+              if(dumpStatus==dsActive) continue
+              else c= cord[1] ">"
+           }
+           else if(c=="&") {
+              sc=c
+              state=2
+			  continue
+           }
+           else if(c=="¡") {
+              if(state==3) last_mode=state=4
+              continue
+           }
+           else if(c=="µ") {
+              if(state==4) last_mode=state=3
+              continue
+           }
+           else if(c=="Ω") {
+		      # Clear screen - if Recording dump screen
+              delete cur
+              if(dumpStatus==dsActive) ret=ret dump_screen()
+              dumpStatus=dsOff
+              continue
+           }
+           else if(c=="Ģ") {
+		      # Clear to end of line. This is usually done when preparing
+			  # overlay some sort of popup dialog or redraw screen.
+			  # If active dump current screen contents and continue to append.
+              if(dumpStatus==dsActive) {
+                  delete cur
+                  ret=ret dump_screen();
+              }
+              if(dumpStatus) {
+                  for(pos=x;pos<maxX;pos++) {
+                     delete dump[pos,y]
+                     if (!spc) delete attr[pos,y]
+                     else attr[pos,y]=atos(span)
+                  }
+                  dumpStatus=dsNew
+              }
+              continue
+           }
+           else if(c=="β") {
+		      # Move to x,y. If we are not recording screen start now
+			  # otherwise continue
+              split(substr(string,i+1),cord,";");
+              x=cord[2]
+              y=cord[1]
+			  if(y>maxY) maxY=y
+              i+=length(cord[1]cord[2])+2
+              dumpStatus=dumpStatus?dumpStatus:dsReset
+              continue
+           }
+           else if(state==4&&i>=start&&i<=end&&c in N) c=N[c]
+        }
+        if(dumpStatus==dsReset) {
+            delete dump
+            delete attr
+            ret=ret"\n"
+            dumpStatus=dsActive
+        }
+        if(dumpStatus==dsNew) {
+		    # After moving/clearing we are now ready to write
+			# somthing to the screen so start recording now
+            ret=ret"\n"
+            dumpStatus=dsActive
+        }
+        if(dumpStatus==dsActive) {
+            dump[x,y] = c
+            if(!spc) delete attr[x,y]
+            else attr[x,y] = atos(span)
+            if(++x>maxX) maxX=x;
+        }
+        else ret=ret c
+    }
+	# End of line if dumping increment y and set x back to first col
+    if(dumpStatus==dsActive) {x=1; if(++y>maxY) maxY=y; }
+    return ret
+}
+BEGIN{
+    OFS=FS
+	# dump screen status
+	dsOff=0    # Not dumping screen contents just write output direct
+	dsNew=1    # Just after move/clear waiting for activity to start recording
+	dsReset=2  # Screen cleared build new empty buffer and record
+	dsActive=3 # Currently recording
+    F="abcdefghijklmnopqrstuvwxyz{}`~"
+    T="▒␉␌␍␊°±␤␋┘┐┌└┼⎺⎻─⎼⎽├┤┴┬│≤≥π£◆·"
+    for(i=1;i<=length(F);i++)N[substr(F,i,1)]=substr(T,i,1);
+}
 
-old='abcdefghijklmnopqrstuvwxyz{}\`~'
-new='▒␉␌␍␊°±␤␋┘┐┌└┼⎺⎻─⎼⎽├┤┴┬│≤≥π£◆·'
-new=unicode(new, 'utf-8')
-table=range(128)
-for o,n in zip(old, new): table[ord(o)]=n
-
-(STANDARD, ALTERNATIVE, HTML_TAG, HTML_ENTITY) = (0, 1, 2, 3)
-
-state = STANDARD
-last_mode = STANDARD
-for c in unicode(sys.stdin.read(), encoding):
-  if state == HTML_TAG:
-    if c == '>':
-      state = last_mode
-  elif state == HTML_ENTITY:
-    if c == ';':
-      state = last_mode
-  else:
-    if c == '<':
-      state = HTML_TAG
-    elif c == '&':
-      state = HTML_ENTITY
-    elif c == u'¡':
-      if state == STANDARD:
-        state = ALTERNATIVE
-        last_mode = ALTERNATIVE
-      continue
-    elif c == u'µ':
-      if state == ALTERNATIVE:
-        state = STANDARD
-        last_mode = STANDARD
-      continue
-    elif state == ALTERNATIVE:
-      c = c.translate(table)
-  sys.stdout.write(c.encode(encoding))
-" 2>/dev/null ||
-sed 's/[¡µ]//g' # just strip aternative flag chars
+{ $0=encode($0) } 1 '
+# sed -e 's/[ĢΩ¡µ]//g' -e 's/β[^;]*;[^;]*;//g' # just strip alternative flag chars
 )
 
 printf '</pre>
