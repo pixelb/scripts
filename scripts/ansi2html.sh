@@ -32,11 +32,11 @@
 #                         Handle codes with combined attributes and color.
 #                         Handle isolated <bold> attributes with css.
 #                         Strip more terminal control codes.
-#    V0.17, 08 May 2014
+#    V0.18, 08 May 2014
 #      http://github.com/pixelb/scripts/commits/master/scripts/ansi2html.sh
 
 if [ "$1" = "--version" ]; then
-    printf '0.17\n' && exit
+    printf '0.18\n' && exit
 fi
 
 if [ "$1" = "--help" ]; then
@@ -292,12 +292,9 @@ s#\x0F#µ#g
 awk '
 function dump_line(l,del,c,blanks,ret) {
   for(c=1;c<maxX;c++) {
-    if ((c SUBSEP l) in attr || length(cur) &&
-        (length(blanks) || (c SUBSEP l) in dump)) {
-      if(del) {
-        ret = ret fixas(cur,attr[c,l])
-        delete attr[c,l]
-      } else ret = ret blanks fixas(cur,attr[c,l])
+    if ((c SUBSEP l) in attr || length(cur)) {
+      ret = ret blanks fixas(cur,attr[c,l])
+      if(del) delete attr[c,l]
       blanks=""
     }
     if ((c SUBSEP l) in dump) {
@@ -402,6 +399,7 @@ function encode(string,start,end,i,ret,pos,sc,buf) {
        }
        else if(c=="\b") {
           # backspace move insertion point back 1
+          if(spc) attr[x,y]=atos(span)
           x=x>1?x-1:1
           continue
        }
