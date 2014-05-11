@@ -32,11 +32,11 @@
 #                         Handle codes with combined attributes and color.
 #                         Handle isolated <bold> attributes with css.
 #                         Strip more terminal control codes.
-#    V0.18, 08 May 2014
+#    V0.19, 09 May 2014
 #      http://github.com/pixelb/scripts/commits/master/scripts/ansi2html.sh
 
 if [ "$1" = "--version" ]; then
-    printf '0.18\n' && exit
+    printf '0.19\n' && exit
 fi
 
 if [ "$1" = "--help" ]; then
@@ -189,24 +189,19 @@ s#\r\$## # strip trailing \r
 s#[\x07]##g
 s#\x1b[]>=\][0-9;]*##g
 s#\x1bP+.\{5\}##g
-# Mark cursor positioning codes
-s:β:\&#946;:g
-s#${p}\([0-9]\{1,2\}\)G#β;\1;#g
-s#${p}\([0-9]\{1,2\}\);\([0-9]\{1,2\}\)H#β\1;\2;#g
-
-# Escape replacement chars
-s:Ģ:\&#290;:g
-s:Ω:\&#8486;:g
 s:λ:\&lambda;:g
-# Mark clear screen and clear to end of line
-s#${p}K#Ģ#g
-s#${p}H#Ω#g
-# Mark cursor forwards and backwards
-s#${p}C#λM;1;#g
-s#${p}\([0-9]\{1,\}\)C#λM;\1;#g
-s#${p}\([0-9]\{1,\}\)D#λM;-\1;#g
-# Mark delete N chars
-s#${p}\([0-9]\{1,\}\)P#λX;\1;#g
+# Mark cursor positioning codes <LA>Jr;c;
+s#${p}\([0-9]\{1,2\}\)G#λJ;\1;#g
+s#${p}\([0-9]\{1,2\}\);\([0-9]\{1,2\}\)H#λJ\1;\2;#g
+
+# Mark clear as <LA>n where n=1 is screen and n=0 is to end-of-line
+s#${p}H#λC1;#g
+s#${p}K#λC0;#g
+# Mark Cursor move columns as <LA>Mn where n is +ve for right, -ve for left
+s#${p}C#λM1;#g
+s#${p}\([0-9]\{1,\}\)C#λM\1;#g
+s#${p}\([0-9]\{1,\}\)D#λM-\1;#g
+s#${p}\([0-9]\{1,\}\)P#λX\1;#g
 
 s#${p}[0-9;?]*[^0-9;?m]##g
 
@@ -238,10 +233,8 @@ s#${p}¬\([34]8;5;[0-9]\{1,3\}\)m#${p}\1m#g;
 s#${p}9\([0-7]\)m#${p}3\1m${p}1m#g;
 s#${p}10\([0-7]\)m#${p}4\1m${p}1m#g;
 
-# change 'reset' code to a single char, and prepend a single char to
-# other codes so that we can easily do negative matching, as sed
-# does not support look behind expressions etc.
-s#°#\&deg;#g; s#${p}0m#°#g
+# change 'reset' code to <LA>R
+s#${p}0m#λR;#g
 " |
 
 # Convert SGR sequences to HTML
@@ -273,20 +266,19 @@ s#${p}[0-9;]*m##g # strip unhandled codes
 #   sed 'y/abcdefghijklmnopqrstuvwxyz{}`~/▒␉␌␍␊°±␤␋┘┐┌└┼⎺⎻─⎼⎽├┤┴┬│≤≥π£◆·/'
 # However that would be very awkward as we need to only conv some input.
 # The basic scheme that we do in the awk script below is:
-#  1. enable transliterate once ¡ char seen
-#  2. disable once µ char seen (may be on diff line to ¡)
+#  1. enable transliterate once λT1; is seen
+#  2. disable once λT0; is seen (may be on diff line)
 #  3. never transliterate between &; or <> chars
 #  4. track x,y movements and active display mode at each position
 #  5. buffer line/screen and dump when required
 sed "
 # change 'smacs' and 'rmacs' to a single char so that we can easily do
 # negative matching, without using look-behind expressions etc.
-s#\x1b(0#¡#g;
-s#\x0E#¡#g;
+s#\x1b(0#λT1;#g;
+s#\x0E#λT1;#g;
 
-s#µ#\&micro;#g;
-s#\x1b(B#µ#g
-s#\x0F#µ#g
+s#\x1b(B#λT0;#g
+s#\x0F#λT0;#g
 " |
 (
 awk '
@@ -351,11 +343,6 @@ function encode(string,start,end,i,ret,pos,sc,buf) {
           state=last_mode
        } else continue
      } else {
-       if(c=="°") {
-          # Reset attributes
-          while(spc) delete span[spc--]
-          continue
-       }
        if(c=="\r") { x=1; continue }
        if(c=="<") {
          # Change attributes - store current active
@@ -371,32 +358,6 @@ function encode(string,start,end,i,ret,pos,sc,buf) {
          state=2
          continue
        }
-       else if(c=="¡") {
-         if(state==3) last_mode=state=4
-         continue
-       }
-       else if(c=="µ") {
-         if(state==4) last_mode=state=3
-         continue
-       }
-       else if(c=="Ω") {
-         # Clear screen - if Recording dump screen
-         if(dumpStatus==dsActive) ret=ret dump_screen()
-         dumpStatus=dsActive
-         delete dump
-         delete attr
-         x=y=1
-         continue
-       }
-       else if(c=="Ģ") {
-          # Clear to end of line.
-          for(pos=x;pos<maxX;pos++) {
-            dump[pos,y]=" "
-            if (!spc) delete attr[pos,y]
-            else attr[pos,y]=atos(span)
-          }
-          continue
-       }
        else if(c=="\b") {
           # backspace move insertion point back 1
           if(spc) attr[x,y]=atos(span)
@@ -404,47 +365,74 @@ function encode(string,start,end,i,ret,pos,sc,buf) {
           continue
        }
        else if(c=="λ") {
-          # Move left/right on current line
-          split(substr(string,i+1),cord,";")
-          i+=length(cord[1]cord[2])+2
-          if(cord[1]=="M") x+=cord[2]
-          if(cord[1]=="X") {
-            # delete on right
-            for(pos=x;pos<=maxX;pos++) {
-              nx=pos+cord[2]
-              if(nx<maxX) {
-                if((nx SUBSEP y) in attr) attr[pos,y] = attr[nx,y]
-                else delete attr[pos,y]
-                if((nx SUBSEP y) in dump) dump[pos,y] = dump[nx,y]
-                else delete dump[pos,y]
-              } else if(spc) {
+          split(substr(string,i+2),cord,";")
+          cc=substr(string,i+1,1);
+          if(cc=="T") {
+              # Transliterate on/off
+              if(cord[1]==1&&state==3) last_mode=state=4
+              if(cord[1]==0&&state==4) last_mode=state=3
+          }
+          else if(cc=="C") {
+              # Clear
+              if(cord[1]+0) {
+                # Screen - if Recording dump screen
+                if(dumpStatus==dsActive) ret=ret dump_screen()
+                dumpStatus=dsActive
+                delete dump
+                delete attr
+                x=y=1
+              } else {
+                # To end of line
+                for(pos=x;pos<maxX;pos++) {
+                  dump[pos,y]=" "
+                  if (!spc) delete attr[pos,y]
+                  else attr[pos,y]=atos(span)
+                }
+              }
+          }
+          else if(cc=="J") {
+              # Jump to x,y
+              i+=length(cord[2])+1
+              # If line is higher - dump previous screen
+              if(dumpStatus==dsActive&&cord[1]<y) {
+                ret=ret dump_screen();
+                dumpStatus=dsNew;
+              }
+              x=cord[2]
+              if(length(cord[1]) && y!=cord[1]){
+                y=cord[1]
+                if(y>maxY) maxY=y
+                # Change y - start recording
+                dumpStatus=dumpStatus?dumpStatus:dsReset
+              }
+          }
+          else if(cc=="M") {
+              # Move left/right on current line
+              x+=cord[1]
+          }
+          else if(cc=="X") {
+              # delete on right
+              for(pos=x;pos<=maxX;pos++) {
+                nx=pos+cord[1]
+                if(nx<maxX) {
+                  if((nx SUBSEP y) in attr) attr[pos,y] = attr[nx,y]
+                  else delete attr[pos,y]
+                  if((nx SUBSEP y) in dump) dump[pos,y] = dump[nx,y]
+                  else delete dump[pos,y]
+                } else if(spc) {
                   attr[pos,y]=atos(span)
                   dump[pos,y]=" "
+                }
               }
-            }
           }
+          else if(cc=="R") {
+              # Reset attributes
+              while(spc) delete span[spc--]
+          }
+          i+=length(cord[1])+2
           continue
        }
-       else if(c=="β") {
-          # Move to x,y. If we are not recording screen start now
-          # otherwise continue
-          split(substr(string,i+1),cord,";");
-
-          # If line is higher - dump previous screen
-          if(dumpStatus==dsActive&&cord[1]<y) {
-            ret=ret dump_screen();
-            dumpStatus=dsNew;
-          }
-          x=cord[2]
-          i+=length(cord[1]cord[2])+2
-          if(length(cord[1]) && y!=cord[1]){
-            y=cord[1]
-            if(y>maxY) maxY=y
-            dumpStatus=dumpStatus?dumpStatus:dsReset
-          }
-          continue
-       }
-       else if(state==4&&i>=start&&i<=end&&c in N) c=N[c]
+       else if(state==4&&i>=start&&i<=end&&c in Trans) c=Trans[c]
      }
      if(dumpStatus==dsReset) {
        delete dump
@@ -483,7 +471,7 @@ BEGIN{
   maxX=80
   delete cur;
   x=y=1
-  for(i=1;i<=length(F);i++)N[substr(F,i,1)]=substr(T,i,1);
+  for(i=1;i<=length(F);i++)Trans[substr(F,i,1)]=substr(T,i,1);
 }
 
 { $0=encode($0) }
