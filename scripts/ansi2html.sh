@@ -240,6 +240,10 @@ s#${p}0m#λR;#g
 # Convert SGR sequences to HTML
 sed "
 # common combinations to minimise html (optional)
+:f
+s#${p}3[0-7]m${p}3\([0-7]\)m#${p}3\1m#g; t f
+:b
+s#${p}4[0-7]m${p}4\([0-7]\)m#${p}4\1m#g; t b
 s#${p}3\([0-7]\)m${p}4\([0-7]\)m#<span class=\"f\1 b\2\">#g
 s#${p}4\([0-7]\)m${p}3\([0-7]\)m#<span class=\"f\2 b\1\">#g
 
