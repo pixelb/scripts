@@ -14,7 +14,7 @@
 #                       Don't error for ls without --group-dir or --no-group
 #    V0.3, 21 Oct 2009, Handle older ls' which pepper output with reset codes
 #
-#    V1.0, 04 Oct 2010
+#    V1.1, 05 Jun 2014
 #      http://github.com/pixelb/scripts/commits/master/scripts/l
 
 # apply thousands separator to file sizes
@@ -61,11 +61,11 @@ else
 fi
 
 ls=ls #default to standard name
-
-$ls --color -d . >/dev/null 2>&1 || BSD=1
+{ ls --color -d . >/dev/null 2>&1; } ||
+{ gls --color -d . >/dev/null 2>&1 && ls=gls; } || NONGNU=1
 
 if [ "$color_when" ]; then
-  if [ "$BSD" ]; then
+  if [ "$NONGNU" ]; then
     { colorls -d .; } >/dev/null 2>&1 && ls=colorls # for OpenBSD
     $ls -G -d . >/dev/null 2>&1 && color_opt=-G #not supported on Solaris
     [ "$color_when" = "always" ] && { CLICOLOR_FORCE=1; export CLICOLOR_FORCE; }
