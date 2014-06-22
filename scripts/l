@@ -180,5 +180,5 @@ sed "
   :not_hl
 
   # restore any reset codes replaced above
-  s/^0/$ESC[0m/
+  s/^0/${ESC}[0m/
 "
