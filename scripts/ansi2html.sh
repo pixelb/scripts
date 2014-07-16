@@ -32,11 +32,13 @@
 #                         Handle codes with combined attributes and color.
 #                         Handle isolated <bold> attributes with css.
 #                         Strip more terminal control codes.
-#    V0.19, 09 May 2014
+#    V0.20, 16 Jul 2014
 #      http://github.com/pixelb/scripts/commits/master/scripts/ansi2html.sh
 
+gawk --version >/dev/null || exit 1
+
 if [ "$1" = "--version" ]; then
-    printf '0.19\n' && exit
+    printf '0.20\n' && exit
 fi
 
 if [ "$1" = "--help" ]; then
@@ -285,7 +287,7 @@ s#\x1b(B#λT0;#g
 s#\x0F#λT0;#g
 " |
 (
-awk '
+gawk '
 function dump_line(l,del,c,blanks,ret) {
   for(c=1;c<maxX;c++) {
     if ((c SUBSEP l) in attr || length(cur)) {
