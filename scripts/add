@@ -18,16 +18,20 @@ tr -cd '[.\n0-9]' |   # only leave numbers
 sed '/^$/d' |         # delete any blank lines
 
 #method 1
-(tr '\n' +; echo 0) |
-bc                     # \n --> +
+paste -s -d+ |
+bc                     # all but last \n --> +
 
 #method 2
+#(tr '\n' +; echo 0) |
+#bc                     # \n --> +
+
+#method 3
 #tr '\n' +             # \n --> +
 #sed 's/+$/\
 #/' |                  # last + --> \n
 #bc
 
-#method 3
+#method 4
 #(
 #echo 0
 #sed 's/\(.\)$/\1+/'    # \n --> +\n
@@ -35,5 +39,5 @@ bc                     # \n --> +
 #) |
 #dc #5 times slower!
 
-#method 4
+#method 5
 #awk '{s+=$0} END {print s}'
