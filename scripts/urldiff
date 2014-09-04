@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# Download and compare text from two URLs in parallel
+# License: LGPLv2
+# Author:
+#    http://www.pixelbeat.org/
+
+# Be careful to quote URLs appropriately like:
+#  urldiff 'URL1' 'URL2'
+
+# Follow redirections and only show errors as generally
+# text for comparision is relatively small
+curl --version &>/dev/null && URLGET="curl -sS -L" || URLGET="wget -nv -O-"
+
+# Download in parallel and compare
+idiff <($URLGET "$1") <($URLGET "$2")
+
+# Note it would be better to avoid diffing if one of the URLGETs fail,
+# though that would involve manipulating named pipes directly,
+# so KISS and rely on error messages and only addition of lines,
+# to indicate (partial) errors.
