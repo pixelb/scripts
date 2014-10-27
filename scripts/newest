@@ -17,7 +17,7 @@
 #                       Add -nr option to not recurse
 #                       Add -na option to ignore dotfiles
 #                       Add -r option to show oldest rather than newest
-#                       Allow specifiying multiple files & directories
+#                       Allow specifying multiple files & directories
 #                       Don't output extra file info if output is not a tty
 
 num="20"

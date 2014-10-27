@@ -9,7 +9,7 @@
 #  urldiff 'URL1' 'URL2'
 
 # Follow redirections and only show errors as generally
-# text for comparision is relatively small
+# text for comparison is relatively small
 curl --version &>/dev/null && URLGET="curl -sS -L" || URLGET="wget -nv -O-"
 
 # Download in parallel and compare

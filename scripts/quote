@@ -17,7 +17,7 @@ if [ $# == 3 ]; then
 fi
 
 if [ $# != 2 ]; then
-    echo "Usage: $0 [quote_string(> )] reponse_level(starting at 0) line_width" >&2
+    echo "Usage: $0 [quote_string(> )] response_level(starting at 0) line_width" >&2
     exit 1
 fi
 

@@ -15,7 +15,7 @@
 #    (if the filesystem even supports that).
 # Changes:
 #    V1.0, 31 May 2006, Initial release
-#    V1.1, 13 Jul 2007, Allow specifiying epoch
+#    V1.1, 13 Jul 2007, Allow specifying epoch
 #                       Remove the use of temp files
 #    V1.2, 24 Jul 2007, Fallback to second resolution for touch implementations
 #                       that don't handle nanoseconds in the date string.

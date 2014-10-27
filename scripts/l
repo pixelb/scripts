@@ -95,7 +95,7 @@ if [ "$color_when" ]; then
     # but so this script is more general, we do it here.
 
     # Newer ls use "mh" to represent the color for multi hardlinked
-    # files so handle the backwards incompatability with "hl"
+    # files so handle the backwards incompatibility with "hl"
     if   dircolors | grep -F "mh=" >/dev/null; then
       hl_no_color="s/hl[^:]*:/mh=:/; s/mh[^:]*:/mh=:/"
     elif dircolors | grep -F "hl=" >/dev/null; then

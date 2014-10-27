@@ -160,7 +160,7 @@ printf '%s' '
   font-weight: '`[ "$dark_bg" ] && printf 'normal;' || printf 'bold;'`'
 }
 .reverse {
-  /* CSS doesnt support swapping fg and bg colours unfortunately,
+  /* CSS does not support swapping fg and bg colours unfortunately,
      so just hardcode something that will look OK on all backgrounds. */
   '"color: #$P0; background-color: #$P7;"'
 }
@@ -359,7 +359,7 @@ function encode(string,start,end,i,ret,pos,sc,buf) {
          continue
        }
        else if(c=="&") {
-         # All goes to single positon till we see a semicolon
+         # All goes to single position till we see a semicolon
          sc=c
          state=2
          continue

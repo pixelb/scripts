@@ -15,7 +15,7 @@
 
 # Divisor can be 1, 1000, 1024
 #
-# A divisor of 1 => the thousands seperator
+# A divisor of 1 => the thousands separator
 # appropriate to ones locale is inserted.
 # So the locale must be set before this
 # functionality is used (see below).
@@ -52,7 +52,7 @@ import sys
 import getopt
 def Usage():
     print "Usage: %s [OPTION] [PATH]" % os.path.split(sys.argv[0])[1]
-    print "    --divisor=value   The default value is 1 which means insert thousands seperator."
+    print "    --divisor=value   The default value is 1 which means insert thousands separator."
     print "                      Other possible values are 1000 and 1024."
     print "    --columns=1,2,3"
     print "    --help            display help"

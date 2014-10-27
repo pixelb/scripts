@@ -8,7 +8,7 @@
 # note filenames with \1 or \n will cause problems
 
 # note this is still much slower than it could be,
-# as there is a seperate mv executed for each file/dir.
+# as there is a separate mv executed for each file/dir.
 # It would be much more efficient to pass the output
 # of this to a python script for e.g. that does the rename
 
