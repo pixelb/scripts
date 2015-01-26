@@ -32,13 +32,13 @@
 #                         Handle codes with combined attributes and color.
 #                         Handle isolated <bold> attributes with css.
 #                         Strip more terminal control codes.
-#    V0.20, 16 Jul 2014
+#    V0.21, 26 Jan 2015
 #      http://github.com/pixelb/scripts/commits/master/scripts/ansi2html.sh
 
 gawk --version >/dev/null || exit 1
 
 if [ "$1" = "--version" ]; then
-    printf '0.20\n' && exit
+    printf '0.21\n' && exit
 fi
 
 if [ "$1" = "--help" ]; then
@@ -180,8 +180,8 @@ p='\x1b\['        #shortcut to match escape codes
 # Handle various xterm control sequences.
 # See /usr/share/doc/xterm-*/ctlseqs.txt
 sed "
-# escape ampersand
-s#&#\&amp;#g;
+# escape ampersand and quote
+s#&#\&amp;#g; s#\"#\&quot;#g;
 s#\x1b[^\x1b]*\x1b\\\##g  # strip anything between \e and ST
 s#\x1b][0-9]*;[^\a]*\a##g # strip any OSC (xterm title etc.)
 
@@ -191,19 +191,18 @@ s#\r\$## # strip trailing \r
 s#[\x07]##g
 s#\x1b[]>=\][0-9;]*##g
 s#\x1bP+.\{5\}##g
-s:λ:\&lambda;:g
 # Mark cursor positioning codes <LA>Jr;c;
-s#${p}\([0-9]\{1,2\}\)G#λJ;\1;#g
-s#${p}\([0-9]\{1,2\}\);\([0-9]\{1,2\}\)H#λJ\1;\2;#g
+s#${p}\([0-9]\{1,2\}\)G#\"J;\1;#g
+s#${p}\([0-9]\{1,2\}\);\([0-9]\{1,2\}\)H#\"J\1;\2;#g
 
 # Mark clear as <LA>n where n=1 is screen and n=0 is to end-of-line
-s#${p}H#λC1;#g
-s#${p}K#λC0;#g
+s#${p}H#\"C1;#g
+s#${p}K#\"C0;#g
 # Mark Cursor move columns as <LA>Mn where n is +ve for right, -ve for left
-s#${p}C#λM1;#g
-s#${p}\([0-9]\{1,\}\)C#λM\1;#g
-s#${p}\([0-9]\{1,\}\)D#λM-\1;#g
-s#${p}\([0-9]\{1,\}\)P#λX\1;#g
+s#${p}C#\"M1;#g
+s#${p}\([0-9]\{1,\}\)C#\"M\1;#g
+s#${p}\([0-9]\{1,\}\)D#\"M-\1;#g
+s#${p}\([0-9]\{1,\}\)P#\"X\1;#g
 
 s#${p}[0-9;?]*[^0-9;?m]##g
 
@@ -211,8 +210,8 @@ s#${p}[0-9;?]*[^0-9;?m]##g
 
 # Normalize the input before transformation
 sed "
-# escape HTML (ampersand done above)
-s#>#\&gt;#g; s#<#\&lt;#g; s#\"#\&quot;#g
+# escape HTML (ampersand and quote done above)
+s#>#\&gt;#g; s#<#\&lt;#g;
 
 # normalize SGR codes a little
 
@@ -236,7 +235,7 @@ s#${p}9\([0-7]\)m#${p}3\1m${p}1m#g;
 s#${p}10\([0-7]\)m#${p}4\1m${p}1m#g;
 
 # change 'reset' code to <LA>R
-s#${p}0m#λR;#g
+s#${p}0m#\"R;#g
 " |
 
 # Convert SGR sequences to HTML
@@ -272,19 +271,19 @@ s#${p}[0-9;]*m##g # strip unhandled codes
 #   sed 'y/abcdefghijklmnopqrstuvwxyz{}`~/▒␉␌␍␊°±␤␋┘┐┌└┼⎺⎻─⎼⎽├┤┴┬│≤≥π£◆·/'
 # However that would be very awkward as we need to only conv some input.
 # The basic scheme that we do in the awk script below is:
-#  1. enable transliterate once λT1; is seen
-#  2. disable once λT0; is seen (may be on diff line)
+#  1. enable transliterate once "T1; is seen
+#  2. disable once "T0; is seen (may be on diff line)
 #  3. never transliterate between &; or <> chars
 #  4. track x,y movements and active display mode at each position
 #  5. buffer line/screen and dump when required
 sed "
 # change 'smacs' and 'rmacs' to a single char so that we can easily do
 # negative matching, without using look-behind expressions etc.
-s#\x1b(0#λT1;#g;
-s#\x0E#λT1;#g;
+s#\x1b(0#\"T1;#g;
+s#\x0E#\"T1;#g;
 
-s#\x1b(B#λT0;#g
-s#\x0F#λT0;#g
+s#\x1b(B#\"T0;#g
+s#\x0F#\"T0;#g
 " |
 (
 gawk '
@@ -370,7 +369,7 @@ function encode(string,start,end,i,ret,pos,sc,buf) {
           x=x>1?x-1:1
           continue
        }
-       else if(c=="λ") {
+       else if(c=="\"") {
           split(substr(string,i+2),cord,";")
           cc=substr(string,i+1,1);
           if(cc=="T") {
