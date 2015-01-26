@@ -191,14 +191,14 @@ s#\r\$## # strip trailing \r
 s#[\x07]##g
 s#\x1b[]>=\][0-9;]*##g
 s#\x1bP+.\{5\}##g
-# Mark cursor positioning codes <LA>Jr;c;
+# Mark cursor positioning codes \"Jr;c;
 s#${p}\([0-9]\{1,2\}\)G#\"J;\1;#g
 s#${p}\([0-9]\{1,2\}\);\([0-9]\{1,2\}\)H#\"J\1;\2;#g
 
-# Mark clear as <LA>n where n=1 is screen and n=0 is to end-of-line
+# Mark clear as \"Cn where n=1 is screen and n=0 is to end-of-line
 s#${p}H#\"C1;#g
 s#${p}K#\"C0;#g
-# Mark Cursor move columns as <LA>Mn where n is +ve for right, -ve for left
+# Mark Cursor move columns as \"Mn where n is +ve for right, -ve for left
 s#${p}C#\"M1;#g
 s#${p}\([0-9]\{1,\}\)C#\"M\1;#g
 s#${p}\([0-9]\{1,\}\)D#\"M-\1;#g
@@ -234,7 +234,7 @@ s#${p}¬\([34]8;5;[0-9]\{1,3\}\)m#${p}\1m#g;
 s#${p}9\([0-7]\)m#${p}3\1m${p}1m#g;
 s#${p}10\([0-7]\)m#${p}4\1m${p}1m#g;
 
-# change 'reset' code to <LA>R
+# change 'reset' code to \"R
 s#${p}0m#\"R;#g
 " |
 
@@ -486,7 +486,6 @@ END {
     print dump_screen();
   }
 }'
-# sed -e 's/[ĢΩ¡µ]//g' -e 's/β[^;]*;[^;]*;//g' # just strip aternative flag chars
 )
 
 printf '</pre>
