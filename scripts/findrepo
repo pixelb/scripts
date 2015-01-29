@@ -21,7 +21,7 @@
 #                       Support passing extra user specified options to grep
 #    V0.3, 26 Mar 2008, Fix bug generating $repo_ign dirs
 #    V0.4, 30 Sep 2008, Tweak grep colour to be usable on light terminals
-#    V0.6, 29 Jan 2015
+#    V0.7, 29 Jan 2015
 #      http://github.com/pixelb/scripts/commits/master/scripts/findrepo
 
 usage() {
@@ -74,8 +74,8 @@ for dir in $repodirs; do
     repo_ign="$repo_ign${repo_ign+" -o "}-name $dir"
 done
 
-find \( -type d -a \( $repo_ign \)  \) -prune -o \
-     \( -type f -name "$glob" -print0 \) |
+find . \( -type d -a \( $repo_ign \)  \) -prune -o \
+       \( -type f -name "$glob" -print0 \) |
 #LANG=C is to work around grep multibyte inefficiencies
 #GREP_COLOR="1;37;47" is bright yellow on black bg
-GREP_COLOR="1;33;40" LANG=C xargs -r0 grep $colour $grep_options -- "$1"
+GREP_COLOR="1;33;40" LANG=C xargs -0 grep $colour $grep_options -- "$1"
