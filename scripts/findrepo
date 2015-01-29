@@ -21,12 +21,12 @@
 #                       Support passing extra user specified options to grep
 #    V0.3, 26 Mar 2008, Fix bug generating $repo_ign dirs
 #    V0.4, 30 Sep 2008, Tweak grep colour to be usable on light terminals
-#    V0.5, 25 Jan 2010
+#    V0.6, 29 Jan 2015
 #      http://github.com/pixelb/scripts/commits/master/scripts/findrepo
 
 usage() {
 (
-echo "Usage:    `basename $0` ['grep options'] search_string glob_pattern
+echo "Usage:    `basename $0` ['grep options'] search_expr [file wildcard]
 examples: `basename $0` 'main' '*.[ch]'          #fixed string search
           `basename $0` '(main|mane)' '*.[ch]'   #regular expression search
           `basename $0` '-F' 'main(' '*.[ch]'    #force fixed string search
@@ -35,16 +35,30 @@ examples: `basename $0` 'main' '*.[ch]'          #fixed string search
     exit 1
 }
 
-if [ "$#" -ne "2" ] && [ "$#" -ne "3" ]; then
+if [ $# -eq 0 ] || [ $# -gt 3 ]; then
     usage
 fi
 
 #enable search highlighting if supported by grep
 echo | grep --color=auto "" >/dev/null 2>&1 && colour="--color=auto"
 
-if [ "$#" -eq "3" ]; then
+if [ $# -eq 1 ]; then
+    glob='*'   # common shortcut to avoid needing to specify all files
+elif [ $# -eq 2 ]; then
+    # if $1 begins with a '-' then we might be hitting the
+    # ambiguous case where grep options are being specified,
+    # so warn with info about (avoiding) the ambiguity
+    if ! test "${1##-*}"; then
+      echo "\
+Warning: treating '$1' as the grep pattern, not extra options.
+If this is intended, avoid the warning with an empty first parameter.
+If this is not intended, please specify the file wildcard." >&2
+    fi
+    glob="$2"
+elif [ $# -eq 3 ]; then
     grep_options="$1"
     shift
+    glob="$2"
 fi
 
 #default to -E or -F as appropriate, not -G
@@ -61,7 +75,7 @@ for dir in $repodirs; do
 done
 
 find \( -type d -a \( $repo_ign \)  \) -prune -o \
-     \( -type f -name "$2" -print0 \) |
+     \( -type f -name "$glob" -print0 \) |
 #LANG=C is to work around grep multibyte inefficiencies
 #GREP_COLOR="1;37;47" is bright yellow on black bg
 GREP_COLOR="1;33;40" LANG=C xargs -r0 grep $colour $grep_options -- "$1"
