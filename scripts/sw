@@ -30,6 +30,7 @@
 #    V1.3, 01 Aug 2007, Testing release.
 #    V1.4, 02 Aug 2007, Various tweaks to get working under ubuntu and Mac OS X.
 #    V1.5, 27 Jun 2008, set LANG=C as got vague bug report about it.
+#    V1.6, 19 Mar 2015  http://github.com/pixelb/scripts/commits/master/scripts/sw
 
 export LANG=C
 
@@ -98,7 +99,7 @@ lap() {
     fi
 }
 
-echo -n "Space for lap | ? for split | Ctrl-C to stop | Space to start...">&2
+printf "Space for lap | ? for split | Ctrl-C to stop | Space to start...">&2
 
 while true; do
     trap true INT QUIT #set signal handlers
