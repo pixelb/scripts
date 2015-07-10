@@ -32,13 +32,13 @@
 #                         Handle codes with combined attributes and color.
 #                         Handle isolated <bold> attributes with css.
 #                         Strip more terminal control codes.
-#    V0.21, 26 Jan 2015
+#    V0.22, 10 Jul 2015
 #      http://github.com/pixelb/scripts/commits/master/scripts/ansi2html.sh
 
 gawk --version >/dev/null || exit 1
 
 if [ "$1" = "--version" ]; then
-    printf '0.21\n' && exit
+    printf '0.22\n' && exit
 fi
 
 if [ "$1" = "--help" ]; then
@@ -168,6 +168,8 @@ printf '%s' '
 .line-through { text-decoration: line-through; }
 .blink { text-decoration: blink; }
 
+/* Avoid pixels between adjacent span elements.  */
+span { display: inline-block; }
 </style>
 </head>
 
