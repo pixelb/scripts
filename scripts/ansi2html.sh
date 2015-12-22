@@ -32,7 +32,7 @@
 #                         Handle codes with combined attributes and color.
 #                         Handle isolated <bold> attributes with css.
 #                         Strip more terminal control codes.
-#    V0.22, 10 Jul 2015
+#    V0.23, 22 Dec 2015
 #      http://github.com/pixelb/scripts/commits/master/scripts/ansi2html.sh
 
 gawk --version >/dev/null || exit 1
@@ -168,8 +168,11 @@ printf '%s' '
 .line-through { text-decoration: line-through; }
 .blink { text-decoration: blink; }
 
-/* Avoid pixels between adjacent span elements.  */
+/* Avoid pixels between adjacent span elements.
+   Note this only works for lines less than 80 chars
+   where we close span elements on the same line.
 span { display: inline-block; }
+*/
 </style>
 </head>
 
@@ -279,8 +282,7 @@ s#${p}[0-9;]*m##g # strip unhandled codes
 #  4. track x,y movements and active display mode at each position
 #  5. buffer line/screen and dump when required
 sed "
-# change 'smacs' and 'rmacs' to a single char so that we can easily do
-# negative matching, without using look-behind expressions etc.
+# change 'smacs' and 'rmacs' to \"T1 and \"T0 to simplify matching.
 s#\x1b(0#\"T1;#g;
 s#\x0E#\"T1;#g;
 
