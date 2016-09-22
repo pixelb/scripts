@@ -10,11 +10,12 @@
 #     PYTHONSTARTUP=~/path/to/inpy python
 # Changes:
 #    V0.1      09 Sep 2008     Initial release
-#    V0.3      15 Sep 2013
+#    V0.4      22 Sep 2016
 #      http://github.com/pixelb/scripts/commits/master/scripts/inpy
 
 
-import os, errno
+import errno, os, sys
+
 class _readline:
     history=os.path.join(os.environ['HOME'],'.inpy_history')
     import readline
@@ -36,7 +37,6 @@ class _readline:
         self.readline.write_history_file(self.history)
 _rl=_readline()
 
-import sys
 # The following exits on Ctrl-C
 def _std_exceptions(etype, value, tb):
     sys.excepthook=sys.__excepthook__
@@ -71,6 +71,11 @@ def ppdict(d):
         spacing=" " * (16-(len(repr(k))+1))
         print "%s:%s%s," % (repr(k),spacing,repr(d[k]))
     print '}'
+
+#From Ned Batchelder. Support pasting of multiline code
+#Ctrl-d to end input
+def paste():
+    exec(sys.stdin.read(), globals())
 
 if 0: # Show info on startup
     sys.stderr.write("Python %s\n" % sys.version.split('\n')[0])
