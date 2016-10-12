@@ -14,7 +14,7 @@
 #                       Don't error for ls without --group-dir or --no-group
 #    V0.3, 21 Oct 2009, Handle older ls' which pepper output with reset codes
 #
-#    V1.1, 05 Jun 2014
+#    V1.2, 12 Oct 2016
 #      http://github.com/pixelb/scripts/commits/master/scripts/l
 
 # apply thousands separator to file sizes
@@ -138,9 +138,17 @@ $ls --no-group -d . >/dev/null 2>&1 && ng=--no-group
 lfmt=lfmt
 echo "$*" | grep -E -- "-(m|i|x|s|C|-version|-help)" >/dev/null && lfmt=""
 
+# set -o pipefail is bash/ksh/zsh specific
+# So manually propagate the exit status from ls.
+# See http://stackoverflow.com/a/30658405/4421
+
+exec 4>&1
+ls_status=`{ {
+
 # Start with the standard long format listing
 # with colours, and latest files at bottom
-$ls -lrtq $color_opt$color_when $ng $gdf "$@" |
+$ls -lrtq $color_opt$color_when $ng $gdf "$@";
+printf $? 1>&3; } |
 
 # process with sed to...
 sed "
@@ -181,4 +189,13 @@ sed "
 
   # restore any reset codes replaced above
   s/^0/${ESC}[0m/
-"
+" 1>&4; } 3>&1`
+
+sed_status=$?
+
+# Note if sed fails, then if ls outputs it will usually get
+# a SIGPIPE and exit with status 141.  Though that's dependent
+# on ls(1) propagating that "error", and also will not be the case
+# if ls does not output after sed terminates.  So factor both
+# exit values into the final exit status.
+test $ls_status != 0 && exit $ls_status || exit $sed_status
