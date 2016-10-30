@@ -14,7 +14,7 @@
 #                       Don't error for ls without --group-dir or --no-group
 #    V0.3, 21 Oct 2009, Handle older ls' which pepper output with reset codes
 #
-#    V1.2, 12 Oct 2016
+#    V1.3, 30 Oct 2016
 #      http://github.com/pixelb/scripts/commits/master/scripts/l
 
 # apply thousands separator to file sizes
@@ -94,12 +94,17 @@ if [ "$color_when" ]; then
     # as it defaults to blinking.  We could do all this in ~/.dir_colors
     # but so this script is more general, we do it here.
 
+    # Ensure LS_COLORS is delimited with ':' to simplify the following regexes.
+    # Otherwise we'd have to consider using word boundaries (\b, \<, [[:<:]]),
+    # but those are non portable.
+    LS_COLORS=":$LS_COLORS:"; export LS_COLORS
+
     # Newer ls use "mh" to represent the color for multi hardlinked
     # files so handle the backwards incompatibility with "hl"
-    if   dircolors | grep -F "mh=" >/dev/null; then
-      hl_no_color="s/hl[^:]*:/mh=:/; s/mh[^:]*:/mh=:/"
+    if   dircolors | grep -F ":mh=" >/dev/null; then
+      hl_no_color="s/:hl=[^:]*:/:mh=:/; s/:mh=[^:]*:/:mh=:/"
     elif dircolors | grep -F "hl=" >/dev/null; then
-      hl_no_color="s/mh[^:]*:/hl=:/; s/hl[^:]*:/hl=:/"
+      hl_no_color="s/:mh=[^:]*:/:hl=:/; s/:hl=[^:]*:/:hl=:/"
     fi
 
     # The extra quoting (wrapping in "") is required for
@@ -111,15 +116,15 @@ if [ "$color_when" ]; then
 
       sed \"
         $hl_no_color
-        s/su[^:]*:/su=:/
-        s/sg[^:]*:/sg=:/
-        s/ow[^:]*:/ow=:/
-        s/st[^:]*:/st=:/
-        s/tw[^:]*:/tw=:/
+        s/:su=[^:]*:/:su=:/
+        s/:sg=[^:]*:/:sg=:/
+        s/:ow=[^:]*:/:ow=:/
+        s/:st=[^:]*:/:st=:/
+        s/:tw=[^:]*:/:tw=:/
 
-        s/ca[^:]*:/ca=:/
+        s/:ca=[^:]*:/:ca=:/
 
-        s/mi=[^:]\{1,\}:/mi=$LS_HLI:/
+        s/:mi=[^:]\{1,\}:/:mi=$LS_HLI:/
       \"
 
       echo 'export LS_COLORS'
