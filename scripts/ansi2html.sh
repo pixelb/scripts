@@ -32,7 +32,7 @@
 #                         Handle codes with combined attributes and color.
 #                         Handle isolated <bold> attributes with css.
 #                         Strip more terminal control codes.
-#    V0.23, 28 Feb 2016
+#    V0.24, 14 Sep 2017
 #      http://github.com/pixelb/scripts/commits/master/scripts/ansi2html.sh
 
 gawk --version >/dev/null || exit 1
@@ -234,6 +234,12 @@ s#${p}[0-9;?]*[^0-9;?m]##g
 sed "
 # escape HTML (ampersand and quote done above)
 s#>#\&gt;#g; s#<#\&lt;#g;
+
+# handle truecolor
+s#${p}38;2;\([0-9]\{1,3\}\);\([0-9]\{1,3\}\);\([0-9]\{1,3\}\)m#\
+<span style=\"color:rgb(\1\,\2\,\3\)\">#g
+s#${p}48;2;\([0-9]\{1,3\}\);\([0-9]\{1,3\}\);\([0-9]\{1,3\}\)m#\
+<span style=\"background-color:rgb(\1\,\2\,\3\)\">#g
 
 # normalize SGR codes a little
 
