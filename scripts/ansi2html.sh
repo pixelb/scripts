@@ -235,6 +235,10 @@ sed "
 # escape HTML (ampersand and quote done above)
 s#>#\&gt;#g; s#<#\&lt;#g;
 
+# handle truecolor
+s#${p}38;2;\([0-9]\{1,3\}\);\([0-9]\{1,3\}\);\([0-9]\{1,3\}\)m#<span style=\"color:rgb(\1\,\2\,\3\)\">#g
+s#${p}48;2;\([0-9]\{1,3\}\);\([0-9]\{1,3\}\);\([0-9]\{1,3\}\)m#<span style=\"background-color:rgb(\1\,\2\,\3\)\">#g
+
 # normalize SGR codes a little
 
 # split 256 colors out and mark so that they're not
