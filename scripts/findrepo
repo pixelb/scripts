@@ -69,6 +69,14 @@ if ! printf "%s\n" "$grep_options" |
     grep_options="$grep_options $type"
 fi
 
+# Parallel processing can help if one is I/O bound
+# and random access to the files is efficient.
+# Generally -P is not related to the number of CPUs
+# in this use case as I/O bound.
+# TODO: maybe support -j to enable this
+#num_proc='-P8'
+#max_args='-n200'
+
 repodirs=".git .svn CVS .hg .bzr _darcs"
 for dir in $repodirs; do
     repo_ign="$repo_ign${repo_ign+" -o "}-name $dir"
@@ -78,4 +86,5 @@ find . \( -type d -a \( $repo_ign \)  \) -prune -o \
        \( -type f -name "$glob" -print0 \) |
 #LANG=C is to work around grep multibyte inefficiencies
 #GREP_COLOR="1;37;47" is bright yellow on black bg
-GREP_COLOR="1;33;40" LANG=C xargs -0 grep $colour $grep_options -- "$1"
+GREP_COLOR="1;33;40" LANG=C \
+  xargs -r0 $max_args $num_proc grep $colour $grep_options -- "$1"
