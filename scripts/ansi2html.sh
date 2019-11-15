@@ -32,13 +32,13 @@
 #                         Handle codes with combined attributes and color.
 #                         Handle isolated <bold> attributes with css.
 #                         Strip more terminal control codes.
-#    V0.25, 26 Jan 2019
+#    V0.26, 16 Nov 2019
 #      http://github.com/pixelb/scripts/commits/master/scripts/ansi2html.sh
 
 gawk --version >/dev/null || exit 1
 
 if [ "$1" = "--version" ]; then
-    printf '0.25\n' && exit
+    printf '0.26\n' && exit
 fi
 
 usage()
@@ -317,7 +317,7 @@ s#\x0F#\"T0;#g
 gawk '
 function dump_line(l,del,c,blanks,ret) {
   for(c=1;c<maxX;c++) {
-    if ((c SUBSEP l) in attr || length(cur)) {
+    if ((c SUBSEP l) in attr || alength(cur)) {
       ret = ret blanks fixas(cur,attr[c,l])
       if(del) delete attr[c,l]
       blanks=""
@@ -328,7 +328,7 @@ function dump_line(l,del,c,blanks,ret) {
       blanks=""
     } else blanks=blanks " "
   }
-  if(length(cur)) ret=ret blanks
+  if(alength(cur)) ret=ret blanks
   return ret
 }
 
@@ -339,12 +339,18 @@ function dump_screen(l,ret) {
 }
 
 function atos(a,i,ret) {
-  for(i=1;i<=length(a);i++) if(i in a) ret=ret a[i]
+  for(i=1;i<=alength(a);i++) if(i in a) ret=ret a[i]
   return ret
 }
 
+function alength(a, i, k) {
+    k = 0
+    for(i in a) k++
+    return k
+}
+
 function fixas(a,s,spc,i,attr,rm,ret) {
-  spc=length(a)
+  spc=alength(a)
   l=split(s,attr,">")
   for(i=1;i<=spc;i++) {
     rm=rm?rm:(a[i]!=attr[i]">")
