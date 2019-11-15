@@ -317,7 +317,7 @@ s#\x0F#\"T0;#g
 gawk '
 function dump_line(l,del,c,blanks,ret) {
   for(c=1;c<maxX;c++) {
-    if ((c SUBSEP l) in attr || length(cur)) {
+    if ((c SUBSEP l) in attr || alength(cur)) {
       ret = ret blanks fixas(cur,attr[c,l])
       if(del) delete attr[c,l]
       blanks=""
@@ -328,7 +328,7 @@ function dump_line(l,del,c,blanks,ret) {
       blanks=""
     } else blanks=blanks " "
   }
-  if(length(cur)) ret=ret blanks
+  if(alength(cur)) ret=ret blanks
   return ret
 }
 
@@ -339,12 +339,17 @@ function dump_screen(l,ret) {
 }
 
 function atos(a,i,ret) {
-  for(i=1;i<=length(a);i++) if(i in a) ret=ret a[i]
+  for(i=1;i<=alength(a);i++) if(i in a) ret=ret a[i]
   return ret
 }
 
+function alength(a,i) {
+  for(i in a);
+  return i;
+}
+
 function fixas(a,s,spc,i,attr,rm,ret) {
-  spc=length(a)
+  spc=alength(a)
   l=split(s,attr,">")
   for(i=1;i<=spc;i++) {
     rm=rm?rm:(a[i]!=attr[i]">")
