@@ -124,7 +124,7 @@ function validateOnSubmit() {
 
       self.response.out.write('<a href="#comment-%s">#</a> ' % comment.key().id())
       if comment.author:
-        if comment.url.startswith("http://"):
+        if comment.url.startswith("http://") or comment.url.startswith("https://"):
           self.response.out.write('<a rel="nofollow" href="%s">%s</a>:' % (cgi.escape(comment.url,quote=True), cgi.escape(comment.author)))
         else:
           self.response.out.write('%s:' % cgi.escape(comment.author))
