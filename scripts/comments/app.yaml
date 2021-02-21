@@ -1,5 +1,3 @@
-application: pixelbeat-comments-hrd
-version: 1
 runtime: python27
 threadsafe: no
 api_version: 1
