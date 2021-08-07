@@ -36,6 +36,10 @@ class Comment(db.Model):
   content = db.TextProperty()
   date = db.DateTimeProperty(auto_now_add=True)
 
+def previous_year_month_day():
+  last_year = datetime.datetime.now() - datetime.timedelta(days=1*365)
+  return last_year.strftime("%Y-%m-%d")
+
 def age(date):
   age = datetime.datetime.now() - date
   if age.days:
@@ -109,8 +113,19 @@ function validateOnSubmit() {
         self.response.out.write('%d' % value)
         return
 
+    # Caveat is anchor '#' is not sent to server (in self.request.url)
+    # so any links on web before Aug 7 2021 referencing specific comments, wont work
+    # All anchors now specify the "all" parameter so will be valid going forward.
+    if mode == "count" or self.request.get("all"):
+      limit = ""
+    else:
+      self.response.out.write('<a href="?all=1">load older comments</a>\n<br/><br/>\n')
+      # Note the "query by GQL" form on the GAE console expects the date
+      # in a different format. I.e.: '%sT00:00:00Z'
+      limit = "AND date > DATETIME('%s 00:00:00')" % previous_year_month_day()
+
     #TODO: can have simpler query for just counting. May not need Gql at all?
-    comments = db.GqlQuery("SELECT * FROM Comment WHERE page = '%s' ORDER BY date" % self.request.path)
+    comments = db.GqlQuery("SELECT * FROM Comment WHERE page = '%s' %s ORDER BY date" % (self.request.path, limit))
 
     if mode == "count":
       value=comments.count()
@@ -122,7 +137,7 @@ function validateOnSubmit() {
     for comment in comments:
       self.response.out.write('\n<div id="comment-%s" class="comment %s">\n' % (comment.key().id(), (num%2 and "odd" or "")))
 
-      self.response.out.write('<a href="#comment-%s">#</a> ' % comment.key().id())
+      self.response.out.write('<a href="?all=1#comment-%s">#</a> ' % comment.key().id())
       if comment.author:
         if comment.url.startswith("http://") or comment.url.startswith("https://"):
           self.response.out.write('<a rel="nofollow" href="%s">%s</a>:' % (cgi.escape(comment.url,quote=True), cgi.escape(comment.author)))
