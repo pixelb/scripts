@@ -100,9 +100,13 @@ processArg #defaults
 for var in "$@"; do processArg $var; done
 [ "$css_only" ] && [ "$body_only" ] && usage
 
+sedver=$(sed --version 2>/dev/null)
+if test "${sedver#This is not GNU sed}" != "$sedver"; then
+  echo "Error, BusyBox SED is not supported." >&2
+  exit 1
 # Mac OSX's GNU sed is installed as gsed
 # use e.g. homebrew 'gnu-sed' to get it
-if ! sed --version >/dev/null 2>&1; then
+elif [ -z "$sedver" ]; then
   if gsed --version >/dev/null 2>&1; then
     alias sed=gsed
   else
