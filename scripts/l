@@ -42,7 +42,7 @@ ESC=`printf '\033'`
 if ! tput setaf 1 >/dev/null 2>&1 && ! tput AF 1 >/dev/null 2>&1; then
   color_when=
 # enable highlighting if outputting to terminal or forcing
-elif test -t 1 || echo "$*" | grep -E -- "--color( |=always|$)" >/dev/null; then
+elif test -t 1 || echo "$*" | egrep -- "--color( |=always|$)" >/dev/null; then
   # Note if the user specifies --color=auto then that will override this
   # and hence the output will not be colored :(
   color_when=always
@@ -101,9 +101,9 @@ if [ "$color_when" ]; then
 
     # Newer ls use "mh" to represent the color for multi hardlinked
     # files so handle the backwards incompatibility with "hl"
-    if   dircolors | grep -F ":mh=" >/dev/null; then
+    if   dircolors | fgrep ":mh=" >/dev/null; then
       hl_no_color="s/:hl=[^:]*:/:mh=:/; s/:mh=[^:]*:/:mh=:/"
-    elif dircolors | grep -F "hl=" >/dev/null; then
+    elif dircolors | fgrep "hl=" >/dev/null; then
       hl_no_color="s/:mh=[^:]*:/:hl=:/; s/:hl=[^:]*:/:hl=:/"
     fi
 
@@ -142,7 +142,7 @@ $ls --quoting=shell-escape -d . >/dev/null 2>&1 && quote=--quoting=shell-escape
 # Bypass long format manipulation if any of following formats are specified
 # FIXME: Matching options like this is a bit brittle
 lfmt=lfmt
-echo "$*" | grep -E -- "-(m|i|x|s|C|-version|-help)" >/dev/null && lfmt=""
+echo "$*" | egrep -- "-(m|i|x|s|C|-version|-help)" >/dev/null && lfmt=""
 
 # set -o pipefail is bash/ksh/zsh specific
 # So manually propagate the exit status from ls.
