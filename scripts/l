@@ -61,7 +61,7 @@ else
 fi
 
 ls=ls #default to standard name
-{ ls --color -d . >/dev/null 2>&1; } ||
+{ ls --version >/dev/null 2>&1; } ||
 { gls --color -d . >/dev/null 2>&1 && ls=gls; } || NONGNU=1
 
 if [ "$color_when" ]; then
