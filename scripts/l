@@ -20,6 +20,15 @@
 # apply thousands separator to file sizes
 BLOCK_SIZE=\'1; export BLOCK_SIZE
 
+# Get access to grep that supports POSIX -E option on Solaris.
+# Note we don't just add /usr/xpg4/bin to PATH as that has
+# an incompatible sed.
+if echo . | /usr/xpg4/bin/grep -E -q . 2>/dev/null; then
+  egrep='/usr/xpg4/bin/grep -E'
+else
+  egrep='grep -E'
+fi
+
 # Traditional unix time format with abbreviated month translated from locale.
 # en_* locales default to ISO format without this for reasons discussed here:
 # http://lists.gnu.org/archive/html/bug-coreutils/2009-09/msg00433.html
@@ -42,7 +51,8 @@ ESC=`printf '\033'`
 if ! tput setaf 1 >/dev/null 2>&1 && ! tput AF 1 >/dev/null 2>&1; then
   color_when=
 # enable highlighting if outputting to terminal or forcing
-elif test -t 1 || echo "$*" | egrep -- "--color( |=always|$)" >/dev/null; then
+elif test -t 1 \
+  || echo "$*" | $egrep -- "--color( |=always|$)" >/dev/null; then
   # Note if the user specifies --color=auto then that will override this
   # and hence the output will not be colored :(
   color_when=always
@@ -101,9 +111,9 @@ if [ "$color_when" ]; then
 
     # Newer ls use "mh" to represent the color for multi hardlinked
     # files so handle the backwards incompatibility with "hl"
-    if   dircolors | fgrep ":mh=" >/dev/null; then
+    if   dircolors | grep ":mh=" >/dev/null; then
       hl_no_color="s/:hl=[^:]*:/:mh=:/; s/:mh=[^:]*:/:mh=:/"
-    elif dircolors | fgrep "hl=" >/dev/null; then
+    elif dircolors | grep ":hl=" >/dev/null; then
       hl_no_color="s/:mh=[^:]*:/:hl=:/; s/:hl=[^:]*:/:hl=:/"
     fi
 
