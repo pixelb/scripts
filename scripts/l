@@ -142,7 +142,7 @@ if [ "$color_when" ]; then
   fi
 fi
 # Get locale total string to match on
-total=`$ls -s $color_never / | sed 's/\([^ ]*\).*/\1/;q'`
+total=`$ls -sl $color_never / | sed 's/\([^ ]*\).*/\1/;q'`
 
 # Use these options if available
 $ls --group-directories-first -d . >/dev/null 2>&1 && gdf=--group-directories
