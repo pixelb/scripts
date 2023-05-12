@@ -152,7 +152,7 @@ $ls --quoting=shell-escape -d . >/dev/null 2>&1 && quote=--quoting=shell-escape
 # Bypass long format manipulation if any of following formats are specified
 # FIXME: Matching options like this is a bit brittle
 lfmt=lfmt
-echo "$*" | egrep -- "-(m|i|x|s|C|-version|-help)" >/dev/null && lfmt=""
+echo "$*" | $egrep -- "-(m|i|x|s|C|-version|-help)" >/dev/null && lfmt=""
 
 # set -o pipefail is bash/ksh/zsh specific
 # So manually propagate the exit status from ls.
