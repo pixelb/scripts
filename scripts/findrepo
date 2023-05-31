@@ -85,6 +85,6 @@ done
 find . \( -type d -a \( $repo_ign \)  \) -prune -o \
        \( -type f -name "$glob" -print0 \) |
 #LANG=C is to work around grep multibyte inefficiencies
-#GREP_COLOR="1;37;47" is bright yellow on black bg
-GREP_COLOR="1;33;40" LANG=C \
+#GREP_COLORS="mt=1;37;47" is bright yellow on black bg
+GREP_COLORS="mt=1;33;40" LANG=C \
   xargs -r0 $max_args $num_proc grep $colour $grep_options -- "$1"
