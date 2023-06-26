@@ -91,11 +91,12 @@ a:hover {
 <script type="text/javascript">
 
 /* If user isn't running javascript and
-   they don't click the checkbox then comment lost */
+   they don't answer correctly then comment lost.
+   If are running JS then they get opportunity to fix. */
 function validateOnSubmit() {
 
     var scheck = document.commentform.scheck.value;
-    if (scheck != "3"+"9") {
+    if (scheck != "4"+"0") {
       alert("incorrect answer");
       return false;
     }
@@ -164,7 +165,7 @@ function validateOnSubmit() {
   <tr><td> Name: </td> <td><input type="text" name="author" size="50"> </td></tr>
   <tr><td> Website: </td> <td><input type="text" name="url" size="50"> </td></tr>
   <tr><td style="vertical-align:top;"> comments: <br/>(no HTML) </td> <td><textarea name="content" rows="10" cols="63"></textarea></td></tr>
-  <tr><td> 31+&#x38; </td> <td> <input type="text" name="scheck" id="scheck" size="50"> </td></tr>
+  <tr><td> 31+&#x39; </td> <td> <input type="text" name="scheck" id="scheck" size="50"> </td></tr>
   </table>
   <input type="submit" value="Post">
 </form>
@@ -180,7 +181,7 @@ function validateOnSubmit() {
     #if users.get_current_user():
     #  comment.user = users.get_current_user()
 
-    if self.request.get('scheck') != '3' + '9':
+    if self.request.get('scheck') != '4' + '0':
       self.redirect('#commentform')
       return
 
