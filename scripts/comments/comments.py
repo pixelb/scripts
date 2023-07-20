@@ -181,6 +181,11 @@ function validateOnSubmit() {
     #if users.get_current_user():
     #  comment.user = users.get_current_user()
 
+    # 20/07/2023: Disable comments on root as most spam there
+    if comment.page == '/':
+      self.redirect('#commentform')
+      return
+
     if self.request.get('scheck') != '4' + '0':
       self.redirect('#commentform')
       return
