@@ -27,6 +27,9 @@
 #
 # ' in filenames will cause probs
 
+from __future__ import print_function
+from functools import reduce
+
 import os
 import sys
 import operator
@@ -54,8 +57,7 @@ def print_du(path):
         filedict.setdefault((int(size), stat_val.st_ino),[]).append(name)
     dulist=None
 
-    keys = filedict.keys()
-    keys.sort() #dict randomizes keys
+    keys = sorted(filedict)  #dict randomizes keys
     keys.reverse()
     total=reduce(operator.add, [item[0] for item in keys])
     found_one=0
@@ -72,12 +74,12 @@ def print_du(path):
             if print_du(name):
                 return 1
         found_one=1
-        print "%2d%%%10s    " % (percentage, human(size)),
+        print("%2d%%%10s    " % (percentage, human(size)), end="")
         for name in names:
             if isdir:
                 sys.stdout.write("\033[01;34m")
-            print name,
-        print "\033[00m"
+            print(name, end="")
+        print("\033[00m")
     return found_one
 
 if len(sys.argv) == 1:
