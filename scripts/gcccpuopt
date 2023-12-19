@@ -238,6 +238,12 @@ if [ "$vendor_id" = "AuthenticAMD" ]; then
         fi
     elif [ $cpu_family -eq 22 ]; then #jaguar
         line="btver2 btver1 amdfam10 k8 athlon-4 athlon k6-3 k6-2 k6"
+    elif [ $cpu_family -eq 23 ] ||    #zen/zen2
+         [ $cpu_family -eq 24 ]; then #Hygon Dhyana
+        line="amdfam17h btver2 btver1 amdfam10 k8 athlon-4 athlon k6-3 k6-2 k6"
+    elif [ $cpu_family -eq 25 ] ||    #zen3/zen4
+         [ $cpu_family -eq 26 ]; then #zen5
+        line="amdfam19h amdfam17h btver2 btver1 amdfam10 k8 athlon-4 athlon k6-3 k6-2 k6"
     fi
 elif [ "$vendor_id" = "CentaurHauls" ]; then
     if [ $cpu_family -eq 5 ]; then
