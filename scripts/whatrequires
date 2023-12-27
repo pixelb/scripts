@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+from __future__ import print_function
+
 # List all reverse dependencies (recursively) for the specified packages.
 # I.E. it displays what packages break if you remove the specified packages.
 # In other words what packages should you remove in addition to those specified.
@@ -68,7 +70,7 @@ checked_pkgs={}
 def whatRequires(packages,level=0):
     if not packages: return
     for package in packages:
-        if debug: print "\t"*level+package
+        if debug: print ("\t"*level+package)
         checked_pkgs[package]=''
     if dist_type.rpm:
         cmd  = r"rpm -e --test " + ' '.join(packages) + r" 2>&1 | "
