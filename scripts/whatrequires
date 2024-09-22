@@ -26,7 +26,7 @@ from __future__ import print_function
 #          that option is ignored for the rdepends subcommand.
 # Changes:
 #    V1.0      17 Jan 2006     Initial release
-#    V1.1      01 Feb 2010
+#    V1.2      01 Sep 2024
 #      http://github.com/pixelb/scripts/commits/master/scripts/whatrequires
 
 
@@ -82,11 +82,11 @@ def whatRequires(packages,level=0):
         cmd += r"sed -n 's/ \(.*\) depends on.*/\1/p' | "
         cmd += r"LANG=C sort | uniq"
     else:
-        raise "unknown distro"
+        raise RuntimeError("unknown distro")
     process = os.popen(cmd)
     requires = process.read()
     del(process)
-    new_packages = [p for p in requires.split() if not checked_pkgs.has_key(p)]
+    new_packages = [p for p in requires.split() if p not in checked_pkgs]
     whatRequires(new_packages,level+1)
 
 def notInstalled(packages):
