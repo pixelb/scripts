@@ -46,7 +46,9 @@ def human(num, power="K"):
     return "%.1f%s" % (num,power)
 
 def print_du(path):
-    dufile=os.popen('find \'' + path + '\' -maxdepth 1 -mindepth 1 \( -type f -o -type l -o -type d \) -print0 | xargs -r0 du --max-depth 0 -k | grep -v "^0"')
+    dufile=os.popen(('find \'' + path + '\' -maxdepth 1 -mindepth 1 '
+                    '\\( -type f -o -type l -o -type d \\) -print0 |'
+                    'xargs -r0 du --max-depth 0 -k | grep -v "^0"'))
     dulist=dufile.readlines()
     if len(dulist) == 0: #file specified
         sys.exit(0)
