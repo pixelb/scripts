@@ -73,6 +73,8 @@ fi
 ls=ls #default to standard name
 { ls --version >/dev/null 2>&1; } ||
 { gls --color -d . >/dev/null 2>&1 && ls=gls; } || NONGNU=1
+dircolors=dircolors
+[ "$ls" = 'gls' ] && dircolors=gdircolors
 
 if [ "$color_when" ]; then
   if [ "$NONGNU" ]; then
@@ -89,9 +91,9 @@ if [ "$color_when" ]; then
     color_opt='--color='
     color_never="--color=never"
     # modify the coreutils default colors if distro or user colors not set
-    [ "$LS_COLORS" ] || eval `dircolors`
+    [ "$LS_COLORS" ] || eval `$dircolors`
     # xterm-256color not supported by older dircolors for example
-    [ "$LS_COLORS" ] || eval `TERM=xterm dircolors`
+    [ "$LS_COLORS" ] || eval `TERM=xterm $dircolors`
 
     # Turn off the confusing entries with different backgrounds
     # as we'll highlight the mode bits and hardlink count instead.
@@ -111,7 +113,7 @@ if [ "$color_when" ]; then
 
     # Newer ls use "mh" to represent the color for multi hardlinked
     # files so handle the backwards incompatibility with "hl"
-    if   dircolors | grep ":mh=" >/dev/null; then
+    if   $dircolors | grep ":mh=" >/dev/null; then
       hl_no_color="s/:hl=[^:]*:/:mh=:/; s/:mh=[^:]*:/:mh=:/"
     elif dircolors | grep ":hl=" >/dev/null; then
       hl_no_color="s/:mh=[^:]*:/:hl=:/; s/:hl=[^:]*:/:hl=:/"
