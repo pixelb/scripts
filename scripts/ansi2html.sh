@@ -32,7 +32,7 @@
 #                         Handle codes with combined attributes and color.
 #                         Handle isolated <bold> attributes with css.
 #                         Strip more terminal control codes.
-#    V0.26, 16 Nov 2019
+#    V0.27, 22 Jan 2026
 #      http://github.com/pixelb/scripts/commits/master/scripts/ansi2html.sh
 
 gawk --version >/dev/null || exit 1
@@ -205,6 +205,16 @@ p='\x1b\['        #shortcut to match escape codes
 sed "
 # escape ampersand and quote
 s#&#\&amp;#g; s#\"#\&quot;#g;
+
+# handle OSC 8 hyperlinks - mark for later conversion
+# Use \x01 prefix so markers pass through awk unchanged
+# end hyperlink (empty URI)
+s#\x1b]8;[^;]*;\x1b\\\\#\x01l;#g
+s#\x1b]8;[^;]*;\x07#\x01l;#g
+# start hyperlink (non-empty URI)
+s#\x1b]8;[^;]*;\([^\x1b]\+\)\x1b\\\\#\x01L;\1\x01;#g
+s#\x1b]8;[^;]*;\([^\x07]\+\)\x07#\x01L;\1\x01;#g
+
 s#\x1b[^\x1b]*\x1b\\\##g  # strip anything between \e and ST
 s#\x1b][0-9]*;[^\a]*\a##g # strip any OSC (xterm title etc.)
 
@@ -520,7 +530,13 @@ END {
     print dump_screen();
   }
 }'
-)
+) |
+
+# Convert OSC 8 hyperlink markers to HTML
+sed '
+s#\x01L;\([^\x01]*\)\x01;#<a href="\1">#g
+s#\x01l;#</a>#g
+'
 
 [ "$body_only" ] || printf '</pre>
 </body>
