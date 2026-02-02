@@ -32,7 +32,7 @@
 #                         Handle codes with combined attributes and color.
 #                         Handle isolated <bold> attributes with css.
 #                         Strip more terminal control codes.
-#    V0.27, 22 Jan 2026
+#    V0.28, 02 Feb 2026
 #      http://github.com/pixelb/scripts/commits/master/scripts/ansi2html.sh
 
 gawk --version >/dev/null || exit 1
@@ -165,7 +165,7 @@ done
 [ "$body_only" ] || printf '%s' '
 .f9 { color: '`[ "$dark_bg" ] && printf "#$P7;" || printf "#$P0;"`' }
 .b9 { background-color: #'`[ "$dark_bg" ] && printf $P0 || printf $P15`'; }
-.f9 > .bold,.bold > .f9, body.f9 > pre > .bold {
+.f9 > .bold,.bold > .f9, body.f9 > pre > .bold, body.f9 > pre > a > .bold {
   /* Bold is heavy black on white, or bright white
      depending on the default background */
   color: '`[ "$dark_bg" ] && printf "#$P15;" || printf "#$P0;"`'
@@ -176,6 +176,12 @@ done
      so just hardcode something that will look OK on all backgrounds. */
   '"color: #$P0; background-color: #$P7;"'
 }
+a {
+  /* Ensure OSC 8 hyper-links do not override other attributes.  */
+  color: inherit; text-decoration: underline dashed;
+  text-decoration-color: rgba(128,128,128,0.75);
+}
+a:hover { text-decoration-style: solid; text-decoration-thickness: 1.5px; }
 .underline { text-decoration: underline; }
 .line-through { text-decoration: line-through; }
 .blink { text-decoration: blink; }
